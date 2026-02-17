@@ -144,19 +144,23 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
               <td>
                 <PriorityBadge priority={ticket.priority} />
               </td>
-              <td className={`duration-cell ${
-                ticket.developer === engineerId
-                  ? getDurationClass(ticket.inProgressDuration?.days, ticket.points)
-                  : 'duration--muted'
-              }`}>
-                {formatDuration(ticket.inProgressDuration?.days, ticket.inProgressDuration?.isActive)}
+              <td className="duration-cell">
+                <span className={
+                  ticket.developer === engineerId
+                    ? getDurationClass(ticket.inProgressDuration?.days, ticket.points)
+                    : 'duration--muted'
+                }>
+                  {formatDuration(ticket.inProgressDuration?.days, ticket.inProgressDuration?.isActive)}
+                </span>
               </td>
-              <td className={`duration-cell ${
-                ticket.reviewer === engineerId
-                  ? getDurationClass(ticket.inReviewDuration?.days, ticket.points)
-                  : 'duration--muted'
-              }`}>
-                {formatDuration(ticket.inReviewDuration?.days, ticket.inReviewDuration?.isActive)}
+              <td className="duration-cell">
+                <span className={
+                  ticket.reviewer === engineerId
+                    ? getDurationClass(ticket.inReviewDuration?.days, ticket.points)
+                    : 'duration--muted'
+                }>
+                  {formatDuration(ticket.inReviewDuration?.days, ticket.inReviewDuration?.isActive)}
+                </span>
               </td>
               <td className={`points-cell ${getPointsClass(ticket.points)}`}>
                 {ticket.points || '-'}

@@ -119,12 +119,19 @@
 /* Duration cell styling */
 .duration-cell {
   text-align: center;
-  font-weight: 500;
-  font-size: 0.9rem;
+}
+
+.duration-cell > span {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 .duration--none {
   color: var(--color-text-subtle);
+  font-weight: 400;
 }
 
 .duration--muted {
@@ -132,19 +139,20 @@
   font-weight: 400;
 }
 
+/* Badge styles for relevant durations */
 .duration--fast {
-  color: #36b37e;  /* Green: on track */
-  font-weight: 600;
+  background: #e3fcef;
+  color: #006644;
 }
 
 .duration--medium {
-  color: #ff991f;  /* Yellow: behind */
-  font-weight: 600;
+  background: #fff4e5;
+  color: #974f0c;
 }
 
 .duration--slow {
-  color: #de350b;  /* Red: significantly behind */
-  font-weight: 600;
+  background: #ffebe6;
+  color: #bf2600;
 }
 
 @media print {
