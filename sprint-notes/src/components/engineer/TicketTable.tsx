@@ -70,10 +70,10 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
           comparison = (a.reviewerName || 'zzz').localeCompare(b.reviewerName || 'zzz');
           break;
         case 'inProgressDuration':
-          comparison = (b.inProgressDuration?.hours ?? 0) - (a.inProgressDuration?.hours ?? 0);
+          comparison = (b.inProgressDuration?.days ?? 0) - (a.inProgressDuration?.days ?? 0);
           break;
         case 'inReviewDuration':
-          comparison = (b.inReviewDuration?.hours ?? 0) - (a.inReviewDuration?.hours ?? 0);
+          comparison = (b.inReviewDuration?.days ?? 0) - (a.inReviewDuration?.days ?? 0);
           break;
       }
 
@@ -144,11 +144,11 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
               <td>
                 <PriorityBadge priority={ticket.priority} />
               </td>
-              <td className={`duration-cell ${getDurationClass(ticket.inProgressDuration?.hours)}`}>
-                {formatDuration(ticket.inProgressDuration?.hours, ticket.inProgressDuration?.isActive)}
+              <td className={`duration-cell ${getDurationClass(ticket.inProgressDuration?.days)}`}>
+                {formatDuration(ticket.inProgressDuration?.days, ticket.inProgressDuration?.isActive)}
               </td>
-              <td className={`duration-cell ${getDurationClass(ticket.inReviewDuration?.hours)}`}>
-                {formatDuration(ticket.inReviewDuration?.hours, ticket.inReviewDuration?.isActive)}
+              <td className={`duration-cell ${getDurationClass(ticket.inReviewDuration?.days)}`}>
+                {formatDuration(ticket.inReviewDuration?.days, ticket.inReviewDuration?.isActive)}
               </td>
               <td className={`points-cell ${getPointsClass(ticket.points)}`}>
                 {ticket.points || '-'}

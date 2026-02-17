@@ -126,7 +126,7 @@ export interface JiraChangelog {
 }
 
 export interface StatusDuration {
-  hours: number;      // Business hours only
+  days: number;       // Business days (weekdays only)
   isActive: boolean;  // Currently in this status
 }
 

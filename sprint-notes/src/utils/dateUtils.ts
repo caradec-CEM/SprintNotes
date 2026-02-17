@@ -1,94 +1,78 @@
 import type { JiraChangelog, StatusDuration } from '../types';
 
 /**
- * Calculate business hours (excluding weekends) between two ISO timestamps
+ * Calculate business days (weekdays only) between two timestamps
+ * Uses local timezone to properly identify weekends
  */
-export function calculateBusinessHours(start: string, end: string, debug = false): number {
+export function calculateBusinessDays(start: string, end: string, debug = false): number {
   const startDate = new Date(start);
   const endDate = new Date(end);
 
   if (debug) {
-    console.log('calculateBusinessHours:', {
-      start: startDate.toISOString(),
-      end: endDate.toISOString(),
-      startDay: startDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
-      endDay: endDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+    console.log('calculateBusinessDays:', {
+      start: startDate.toLocaleString('en-US'),
+      end: endDate.toLocaleString('en-US'),
     });
   }
 
-  let totalHours = 0;
-  const current = new Date(startDate);
-  let iteration = 0;
+  // Normalize to start of day in local timezone for accurate day counting
+  const startDay = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+  const endDay = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
 
-  while (current < endDate) {
+  let businessDays = 0;
+  const current = new Date(startDay);
+
+  while (current <= endDay) {
     const dayOfWeek = current.getDay();
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
-    // Skip weekends (0 = Sunday, 6 = Saturday)
     if (!isWeekend) {
-      const nextDay = new Date(current);
-      nextDay.setDate(nextDay.getDate() + 1);
-      nextDay.setHours(0, 0, 0, 0);
-
-      const endOfPeriod = nextDay < endDate ? nextDay : endDate;
-      const periodHours = (endOfPeriod.getTime() - current.getTime()) / (1000 * 60 * 60);
-      totalHours += periodHours;
-
+      businessDays++;
       if (debug) {
-        console.log(`  Day ${iteration + 1}:`, {
-          date: current.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
-          from: current.toISOString(),
-          to: endOfPeriod.toISOString(),
-          hours: periodHours.toFixed(2),
-          total: totalHours.toFixed(2),
-        });
+        console.log(`  ${current.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} - business day (total: ${businessDays})`);
       }
     } else if (debug) {
-      console.log(`  Day ${iteration + 1}: ${current.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} - WEEKEND (skipped)`);
+      console.log(`  ${current.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} - WEEKEND (skipped)`);
     }
 
     // Move to next day
     current.setDate(current.getDate() + 1);
-    current.setHours(0, 0, 0, 0);
-    iteration++;
   }
 
   if (debug) {
-    console.log('Total hours:', totalHours.toFixed(2), '=', (totalHours / 8).toFixed(2), 'business days');
+    console.log('Total business days:', businessDays);
   }
 
-  return totalHours;
+  return businessDays;
 }
 
 /**
- * Format business hours as human-readable duration
+ * Format business days as human-readable duration
  */
-export function formatDuration(hours: number | undefined, isActive: boolean = false): string {
-  if (hours === undefined || hours === 0) return '-';
+export function formatDuration(days: number | undefined, isActive: boolean = false): string {
+  if (days === undefined || days === 0) return '-';
 
   const prefix = isActive ? '~' : '';
-  const businessDays = hours / 8; // 8 hour work days
 
-  if (businessDays < 1) {
-    return `${prefix}${hours.toFixed(1)}h`;
+  if (days === 1) {
+    return `${prefix}1d`;
   }
 
-  return `${prefix}${businessDays.toFixed(1)}d`;
+  return `${prefix}${days}d`;
 }
 
 /**
  * Get CSS class for duration color coding
  */
-export function getDurationClass(hours: number | undefined): string {
-  if (!hours) return 'duration--none';
-  const days = hours / 8;
-  if (days < 1) return 'duration--fast';      // Green: <1 day
-  if (days < 3) return 'duration--medium';    // Yellow: 1-3 days
+export function getDurationClass(days: number | undefined): string {
+  if (!days) return 'duration--none';
+  if (days === 1) return 'duration--fast';    // Green: 1 day
+  if (days <= 3) return 'duration--medium';   // Yellow: 2-3 days
   return 'duration--slow';                    // Red: >3 days
 }
 
 /**
- * Calculate total business time in a specific status from changelog
+ * Calculate total business days in a specific status from changelog
  * Supports matching multiple status names (e.g., ["In Review", "Code Review"])
  */
 export function calculateStatusDuration(
@@ -102,7 +86,7 @@ export function calculateStatusDuration(
   const statusArray = Array.isArray(targetStatuses) ? targetStatuses : [targetStatuses];
   const statusSet = new Set(statusArray);
 
-  let totalHours = 0;
+  let totalDays = 0;
   let currentlyInStatus = false;
   let lastEntryTime: string | null = null;
 
@@ -132,13 +116,13 @@ export function calculateStatusDuration(
           lastEntryTime = history.created;
           currentlyInStatus = true;
         }
-        // Exited target status - calculate business hours
+        // Exited target status - calculate business days
         else if (item.fromString && statusSet.has(item.fromString) && lastEntryTime) {
           if (enableDebug) {
             console.log(`[${issueKey}] Exited "${item.fromString}" at ${history.created}`);
           }
-          const hours = calculateBusinessHours(lastEntryTime, history.created, enableDebug);
-          totalHours += hours;
+          const days = calculateBusinessDays(lastEntryTime, history.created, enableDebug);
+          totalDays += days;
           lastEntryTime = null;
           currentlyInStatus = false;
         }
@@ -157,8 +141,8 @@ export function calculateStatusDuration(
     if (enableDebug) {
       console.log(`[${issueKey}] Still in status, calculating to now`);
     }
-    totalHours += calculateBusinessHours(lastEntryTime, new Date().toISOString(), enableDebug);
+    totalDays += calculateBusinessDays(lastEntryTime, new Date().toISOString(), enableDebug);
   }
 
-  return totalHours > 0 ? { hours: totalHours, isActive: currentlyInStatus } : undefined;
+  return totalDays > 0 ? { days: totalDays, isActive: currentlyInStatus } : undefined;
 }
