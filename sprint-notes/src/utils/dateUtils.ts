@@ -3,18 +3,29 @@ import type { JiraChangelog, StatusDuration } from '../types';
 /**
  * Calculate business hours (excluding weekends) between two ISO timestamps
  */
-export function calculateBusinessHours(start: string, end: string): number {
+export function calculateBusinessHours(start: string, end: string, debug = false): number {
   const startDate = new Date(start);
   const endDate = new Date(end);
 
+  if (debug) {
+    console.log('calculateBusinessHours:', {
+      start: startDate.toISOString(),
+      end: endDate.toISOString(),
+      startDay: startDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+      endDay: endDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+    });
+  }
+
   let totalHours = 0;
   const current = new Date(startDate);
+  let iteration = 0;
 
   while (current < endDate) {
     const dayOfWeek = current.getDay();
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
     // Skip weekends (0 = Sunday, 6 = Saturday)
-    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+    if (!isWeekend) {
       const nextDay = new Date(current);
       nextDay.setDate(nextDay.getDate() + 1);
       nextDay.setHours(0, 0, 0, 0);
@@ -22,11 +33,28 @@ export function calculateBusinessHours(start: string, end: string): number {
       const endOfPeriod = nextDay < endDate ? nextDay : endDate;
       const periodHours = (endOfPeriod.getTime() - current.getTime()) / (1000 * 60 * 60);
       totalHours += periodHours;
+
+      if (debug) {
+        console.log(`  Day ${iteration + 1}:`, {
+          date: current.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+          from: current.toISOString(),
+          to: endOfPeriod.toISOString(),
+          hours: periodHours.toFixed(2),
+          total: totalHours.toFixed(2),
+        });
+      }
+    } else if (debug) {
+      console.log(`  Day ${iteration + 1}: ${current.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} - WEEKEND (skipped)`);
     }
 
     // Move to next day
     current.setDate(current.getDate() + 1);
     current.setHours(0, 0, 0, 0);
+    iteration++;
+  }
+
+  if (debug) {
+    console.log('Total hours:', totalHours.toFixed(2), '=', (totalHours / 8).toFixed(2), 'business days');
   }
 
   return totalHours;
@@ -86,6 +114,9 @@ export function calculateStatusDuration(
   // Debug: Collect all unique status names for this issue
   const statusNames = new Set<string>();
 
+  // Enable detailed debug logging for specific ticket
+  const enableDebug = issueKey === 'CP-3189';
+
   // Track all status transitions
   for (const history of sortedHistories) {
     for (const item of history.items) {
@@ -95,12 +126,19 @@ export function calculateStatusDuration(
 
         // Entered target status (match any in the set)
         if (item.toString && statusSet.has(item.toString)) {
+          if (enableDebug) {
+            console.log(`[${issueKey}] Entered "${item.toString}" at ${history.created}`);
+          }
           lastEntryTime = history.created;
           currentlyInStatus = true;
         }
         // Exited target status - calculate business hours
         else if (item.fromString && statusSet.has(item.fromString) && lastEntryTime) {
-          totalHours += calculateBusinessHours(lastEntryTime, history.created);
+          if (enableDebug) {
+            console.log(`[${issueKey}] Exited "${item.fromString}" at ${history.created}`);
+          }
+          const hours = calculateBusinessHours(lastEntryTime, history.created, enableDebug);
+          totalHours += hours;
           lastEntryTime = null;
           currentlyInStatus = false;
         }
@@ -116,7 +154,10 @@ export function calculateStatusDuration(
 
   // Still in status - calculate to now
   if (currentlyInStatus && lastEntryTime) {
-    totalHours += calculateBusinessHours(lastEntryTime, new Date().toISOString());
+    if (enableDebug) {
+      console.log(`[${issueKey}] Still in status, calculating to now`);
+    }
+    totalHours += calculateBusinessHours(lastEntryTime, new Date().toISOString(), enableDebug);
   }
 
   return totalHours > 0 ? { hours: totalHours, isActive: currentlyInStatus } : undefined;
