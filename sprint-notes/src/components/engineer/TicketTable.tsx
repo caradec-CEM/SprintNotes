@@ -70,7 +70,7 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
           comparison = (a.developerNames[0] || 'zzz').localeCompare(b.developerNames[0] || 'zzz');
           break;
         case 'reviewer':
-          comparison = (a.reviewerName || 'zzz').localeCompare(b.reviewerName || 'zzz');
+          comparison = (a.reviewerNames[0] || 'zzz').localeCompare(b.reviewerNames[0] || 'zzz');
           break;
         case 'inProgressDuration':
           comparison = (b.inProgressDuration?.days ?? 0) - (a.inProgressDuration?.days ?? 0);
@@ -110,9 +110,10 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
     );
   }
 
-  // Check if the current engineer is a developer for highlighting
+  // Check if the current engineer is a developer/reviewer for highlighting
   const isCurrentEngineer = (memberId: string | null) => memberId === engineerId;
   const isCurrentDeveloper = (developers: string[]) => developers.includes(engineerId);
+  const isCurrentReviewer = (reviewers: string[]) => reviewers.includes(engineerId);
 
   return (
     <div className="ticket-table-wrapper">
@@ -184,7 +185,7 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
               </td>
               <td className="duration-cell">
                 <span className={
-                  ticket.reviewer === engineerId
+                  isCurrentReviewer(ticket.reviewers)
                     ? getDurationClass(ticket.inReviewDuration?.days, ticket.points)
                     : 'duration--muted'
                 }>
@@ -212,9 +213,19 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
                     )}
                   </td>
                   <td>
-                    <span className={`person ${isCurrentEngineer(ticket.reviewer) ? 'person--highlight' : ''}`}>
-                      {ticket.reviewerName || '-'}
-                    </span>
+                    {ticket.reviewerNames.length > 0 ? (
+                      ticket.reviewerNames.map((name, idx) => (
+                        <span
+                          key={idx}
+                          className={`person ${isCurrentEngineer(ticket.reviewers[idx]) ? 'person--highlight' : ''}`}
+                          style={{ marginRight: '4px' }}
+                        >
+                          {name}
+                        </span>
+                      ))
+                    ) : (
+                      <span>-</span>
+                    )}
                   </td>
                 </>
               )}

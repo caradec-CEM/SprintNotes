@@ -30,7 +30,7 @@ export function useEngineerData(engineerId: string): EngineerData {
       (t) => t.developers.includes(engineerId) && t.project === 'CP'
     );
     const reviewTickets = tickets.filter(
-      (t) => t.reviewer === engineerId && t.project === 'CP'
+      (t) => t.reviewers.includes(engineerId) && t.project === 'CP'
     );
     const itTickets = tickets.filter(
       (t) => t.assignee === engineerId && t.project === 'IT'
@@ -40,7 +40,7 @@ export function useEngineerData(engineerId: string): EngineerData {
     const allTickets = tickets.filter(
       (t) =>
         t.developers.includes(engineerId) ||
-        t.reviewer === engineerId ||
+        t.reviewers.includes(engineerId) ||
         t.assignee === engineerId
     );
 

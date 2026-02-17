@@ -94,14 +94,57 @@ function transformIssue(raw: JiraIssueRaw): Ticket {
   const developer = developers[0] ?? null;
   const developerName = developerNames[0] ?? null;
 
-  // Reviewer (single)
-  const reviewerAccountId = reviewerField?.accountId ?? null;
-  const reviewerMember = findMemberByAccountId(reviewerAccountId);
-  const reviewerName = reviewerMember?.name ?? reviewerField?.displayName ?? null;
+  // Handle reviewers (can be single or array, plus extract from changelog)
+  const reviewers: string[] = [];
+  const reviewerNames: string[] = [];
+  const reviewerAccountIds = new Set<string>();
+
+  // Handle reviewer field (might be single object or array)
+  if (reviewerField) {
+    const reviewerArray = Array.isArray(reviewerField) ? reviewerField : [reviewerField];
+    reviewerArray.forEach(rev => {
+      if (rev?.accountId) {
+        reviewerAccountIds.add(rev.accountId);
+        const member = findMemberByAccountId(rev.accountId);
+        if (member) {
+          reviewers.push(member.id);
+          reviewerNames.push(member.name);
+        } else if (rev.displayName) {
+          reviewers.push(rev.displayName);
+          reviewerNames.push(rev.displayName);
+        }
+      }
+    });
+  }
+
+  // Also extract reviewers from changelog (who transitioned to/from "Reviewing" status)
+  if (raw.changelog?.histories) {
+    for (const history of raw.changelog.histories) {
+      for (const item of history.items) {
+        if (item.field === 'status' &&
+            (item.toString === 'Reviewing' || item.fromString === 'Reviewing')) {
+          // Find who made this status change
+          const author = (history as any).author;
+          if (author?.accountId && !reviewerAccountIds.has(author.accountId)) {
+            reviewerAccountIds.add(author.accountId);
+            const member = findMemberByAccountId(author.accountId);
+            if (member) {
+              reviewers.push(member.id);
+              reviewerNames.push(member.name);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Backwards compatibility: keep first reviewer as singular fields
+  const reviewer = reviewers[0] ?? null;
+  const reviewerName = reviewerNames[0] ?? null;
 
   // Assignee (for IT tickets)
   const assigneeAccountId = assigneeField?.accountId ?? null;
-  const assigneeMember = findMemberByAccountId(assigneeAccountId);;
+  const assigneeMember = findMemberByAccountId(assigneeAccountId);
 
   // Determine project from key prefix
   const project: Project = raw.key.startsWith('IT') ? 'IT' : 'CP';
@@ -133,10 +176,12 @@ function transformIssue(raw: JiraIssueRaw): Ticket {
     points: raw.fields.customfield_10031 ?? 0,
     developers,
     developerNames,
-    developer,      // Backwards compat
-    developerName,  // Backwards compat
-    reviewer: reviewerMember?.id ?? null,
-    reviewerName,
+    developer,       // Backwards compat
+    developerName,   // Backwards compat
+    reviewers,
+    reviewerNames,
+    reviewer,        // Backwards compat
+    reviewerName,    // Backwards compat
     assignee: assigneeMember?.id ?? null,
     project,
     labels,

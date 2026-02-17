@@ -27,8 +27,10 @@ export interface Ticket {
   developerNames: string[];    // Display names
   developer: string | null;    // DEPRECATED: Use developers[0] for backwards compat
   developerName: string | null; // DEPRECATED: Use developerNames[0]
-  reviewer: string | null;    // Team member ID
-  reviewerName: string | null;  // Display name
+  reviewers: string[];         // Team member IDs (can be multiple, includes changelog)
+  reviewerNames: string[];     // Display names
+  reviewer: string | null;     // DEPRECATED: Use reviewers[0] for backwards compat
+  reviewerName: string | null; // DEPRECATED: Use reviewerNames[0]
   assignee: string | null;    // For IT tickets
   project: Project;
   labels: string[];
@@ -150,7 +152,7 @@ export interface JiraIssueRaw {
     labels: string[] | null;
     customfield_10031: number | null;  // Story Points
     customfield_10124: Array<{ accountId: string; displayName: string }> | null;  // Developer (multiple)
-    customfield_10058: { accountId: string; displayName: string } | null;  // Reviewer (single)
+    customfield_10058: { accountId: string; displayName: string } | Array<{ accountId: string; displayName: string }> | null;  // Reviewer (can be single or multiple)
     customfield_10020: Array<{ id: number; name: string }> | null;  // Sprint
   };
   changelog?: JiraChangelog;
