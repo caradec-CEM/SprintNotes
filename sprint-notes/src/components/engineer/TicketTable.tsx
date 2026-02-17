@@ -191,11 +191,11 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
                     {getLabelDisplayName(label)}
                   </span>
                 ))}
-                {ticket.categorizedLabels.misc.length > 0 && (
-                  <span className="label-tag label-tag--misc" title={ticket.categorizedLabels.misc.join(', ')}>
-                    +{ticket.categorizedLabels.misc.length}
+                {ticket.categorizedLabels.misc.map((label) => (
+                  <span key={label} className="label-tag label-tag--misc" title="Misc">
+                    {getLabelDisplayName(label)}
                   </span>
-                )}
+                ))}
               </td>
             </tr>
           ))}

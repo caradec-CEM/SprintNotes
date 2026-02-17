@@ -20,6 +20,8 @@ export const LABEL_CONFIG: Record<string, LabelConfig> = {
   // Platform labels
   'Blizzard': { category: 'platform' },
   'CEMQ': { category: 'platform' },
+  'Dashboard': { category: 'platform' },
+  'Dashboard-V2': { category: 'platform', displayName: 'Dashboard V2' },
   'ITBacklog': { category: 'platform', displayName: 'IT Backlog' },
   'HubSpot': { category: 'platform' },
   'STR': { category: 'platform' },
@@ -30,8 +32,10 @@ export const LABEL_CONFIG: Record<string, LabelConfig> = {
   'Portal': { category: 'platform' },
 
   // Product labels
+  'DC': { category: 'product' },
   'Engineering': { category: 'product' },
   'IBS': { category: 'product' },
+  'Marketing': { category: 'product' },
   'PABS': { category: 'product' },
 
   // Misc labels
