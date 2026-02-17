@@ -61,12 +61,18 @@ export function getDurationClass(hours: number | undefined): string {
 
 /**
  * Calculate total business time in a specific status from changelog
+ * Supports matching multiple status names (e.g., ["In Review", "Code Review"])
  */
 export function calculateStatusDuration(
   changelog: JiraChangelog | undefined,
-  targetStatus: string
+  targetStatuses: string | string[],
+  issueKey?: string
 ): StatusDuration | undefined {
   if (!changelog?.histories) return undefined;
+
+  // Normalize to array for easier matching
+  const statusArray = Array.isArray(targetStatuses) ? targetStatuses : [targetStatuses];
+  const statusSet = new Set(statusArray);
 
   let totalHours = 0;
   let currentlyInStatus = false;
@@ -77,23 +83,35 @@ export function calculateStatusDuration(
     (a, b) => new Date(a.created).getTime() - new Date(b.created).getTime()
   );
 
+  // Debug: Collect all unique status names for this issue
+  const statusNames = new Set<string>();
+
   // Track all status transitions
   for (const history of sortedHistories) {
     for (const item of history.items) {
       if (item.field === 'status') {
-        // Entered target status
-        if (item.toString === targetStatus) {
+        if (item.toString) statusNames.add(item.toString);
+        if (item.fromString) statusNames.add(item.fromString);
+
+        // Entered target status (match any in the set)
+        if (item.toString && statusSet.has(item.toString)) {
           lastEntryTime = history.created;
           currentlyInStatus = true;
         }
         // Exited target status - calculate business hours
-        else if (item.fromString === targetStatus && lastEntryTime) {
+        else if (item.fromString && statusSet.has(item.fromString) && lastEntryTime) {
           totalHours += calculateBusinessHours(lastEntryTime, history.created);
           lastEntryTime = null;
           currentlyInStatus = false;
         }
       }
     }
+  }
+
+  // Debug logging for first few tickets to see what statuses exist
+  if (issueKey && Math.random() < 0.1) { // Log ~10% of tickets to avoid spam
+    console.log(`[${issueKey}] Status names found:`, Array.from(statusNames).sort());
+    console.log(`[${issueKey}] Looking for:`, statusArray);
   }
 
   // Still in status - calculate to now

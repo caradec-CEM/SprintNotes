@@ -1,5 +1,6 @@
 import { JIRA_CONFIG, JIRA_ENDPOINTS } from '../config/jira';
 import { findMemberByAccountId } from '../config/team';
+import { getStatusConfig } from '../config/statuses';
 import { calculateStatusDuration } from '../utils/dateUtils';
 import type {
   Sprint,
@@ -86,9 +87,20 @@ function transformIssue(raw: JiraIssueRaw): Ticket {
   // Determine project from key prefix
   const project: Project = raw.key.startsWith('IT') ? 'IT' : 'CP';
 
-  // Calculate status durations from changelog
-  const inProgressDuration = calculateStatusDuration(raw.changelog, 'In Progress');
-  const inReviewDuration = calculateStatusDuration(raw.changelog, 'In Review');
+  // Get status configuration for this project type
+  const statusConfig = getStatusConfig(project);
+
+  // Calculate status durations from changelog using project-specific status names
+  const inProgressDuration = calculateStatusDuration(
+    raw.changelog,
+    statusConfig.inProgress,
+    raw.key
+  );
+  const inReviewDuration = calculateStatusDuration(
+    raw.changelog,
+    statusConfig.inReview,
+    raw.key
+  );
 
   return {
     key: raw.key,
