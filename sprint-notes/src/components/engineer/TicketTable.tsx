@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import type { Ticket } from '../../types';
 import { TypeBadge, PriorityBadge, TicketLink } from '../common';
 import { formatDuration, getDurationClass } from '../../utils/dateUtils';
-import { getLabelDisplayName } from '../../config/labels';
+import { getLabelDisplayName, getPrimaryPlatform } from '../../config/labels';
 import './TicketTable.css';
 
 type SortKey = 'key' | 'type' | 'priority' | 'points' | 'developer' | 'reviewer'
@@ -47,8 +47,10 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
     }
   };
 
-  const sortedTickets = useMemo(() => {
-    return [...tickets].sort((a, b) => {
+  // Group and sort tickets
+  const groupedTickets = useMemo(() => {
+    // First sort tickets within their groups
+    const sorted = [...tickets].sort((a, b) => {
       let comparison = 0;
 
       switch (sortKey) {
@@ -80,6 +82,24 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
 
       return sortDir === 'asc' ? comparison : -comparison;
     });
+
+    // Group by platform
+    const groups = new Map<string, Ticket[]>();
+    sorted.forEach(ticket => {
+      const platform = getPrimaryPlatform(ticket.labels);
+      if (!groups.has(platform)) {
+        groups.set(platform, []);
+      }
+      groups.get(platform)!.push(ticket);
+    });
+
+    // Convert to array and sort platforms alphabetically (Other last)
+    return Array.from(groups.entries())
+      .sort(([a], [b]) => {
+        if (a === 'Other') return 1;
+        if (b === 'Other') return -1;
+        return a.localeCompare(b);
+      });
   }, [tickets, sortKey, sortDir]);
 
   if (tickets.length === 0) {
@@ -131,7 +151,14 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
           </tr>
         </thead>
         <tbody>
-          {sortedTickets.map((ticket) => (
+          {groupedTickets.map(([platform, platformTickets]) => (
+            <>
+              <tr key={`platform-${platform}`} className="platform-group-header">
+                <td colSpan={showDevReviewer ? 10 : 8}>
+                  <strong>{platform}</strong> ({platformTickets.length} {platformTickets.length === 1 ? 'ticket' : 'tickets'})
+                </td>
+              </tr>
+              {platformTickets.map((ticket) => (
             <tr key={ticket.key}>
               <td>
                 <TicketLink ticketKey={ticket.key} summary={ticket.summary} />
@@ -198,6 +225,8 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
                 ))}
               </td>
             </tr>
+              ))}
+            </>
           ))}
         </tbody>
       </table>

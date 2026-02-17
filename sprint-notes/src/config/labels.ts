@@ -21,12 +21,12 @@ export const LABEL_CONFIG: Record<string, LabelConfig> = {
   'Blizzard': { category: 'platform' },
   'CEMQ': { category: 'platform' },
   'Dashboard': { category: 'platform' },
-  'Dashboard-V2': { category: 'platform', displayName: 'Dashboard V2' },
+  'Dashboard-V2': { category: 'platform', displayName: 'Dashboard' },  // De-duped with Dashboard
   'ITBacklog': { category: 'platform', displayName: 'IT Backlog' },
   'HubSpot': { category: 'platform' },
   'STR': { category: 'platform' },
   'Survey': { category: 'platform' },
-  'Survey-V2': { category: 'platform', displayName: 'Survey V2' },
+  'Survey-V2': { category: 'platform', displayName: 'Survey' },  // De-duped with Survey
   'TemplateSafari': { category: 'platform', displayName: 'Template Safari' },
   'TemplateUploadTool': { category: 'platform', displayName: 'Template Upload Tool' },
   'Portal': { category: 'platform' },
@@ -81,4 +81,17 @@ export function categorizeLabels(labels: string[]): {
   });
 
   return result;
+}
+
+/**
+ * Get primary platform label for grouping
+ * Returns the display name of the first platform label, or 'Other' if none
+ */
+export function getPrimaryPlatform(labels: string[]): string {
+  const categorized = categorizeLabels(labels);
+  if (categorized.platform.length === 0) return 'Other';
+
+  // Use the display name for grouping (this handles de-duplication)
+  const firstPlatform = categorized.platform[0];
+  return getLabelDisplayName(firstPlatform);
 }
