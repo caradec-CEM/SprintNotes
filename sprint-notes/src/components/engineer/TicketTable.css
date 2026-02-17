@@ -124,19 +124,27 @@
 }
 
 .duration--none {
-  color: var(--text-muted);
+  color: var(--color-text-subtle);
+}
+
+.duration--muted {
+  color: var(--color-text-subtle);
+  font-weight: 400;
 }
 
 .duration--fast {
-  color: #36b37e;  /* Green: <1 day */
+  color: #36b37e;  /* Green: on track */
+  font-weight: 600;
 }
 
 .duration--medium {
-  color: #ff991f;  /* Yellow: 1-3 days */
+  color: #ff991f;  /* Yellow: behind */
+  font-weight: 600;
 }
 
 .duration--slow {
-  color: #de350b;  /* Red: >3 days */
+  color: #de350b;  /* Red: significantly behind */
+  font-weight: 600;
 }
 
 @media print {
