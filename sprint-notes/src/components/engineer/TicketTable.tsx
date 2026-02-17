@@ -144,10 +144,10 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
               <td>
                 <PriorityBadge priority={ticket.priority} />
               </td>
-              <td className={`duration-cell ${getDurationClass(ticket.inProgressDuration?.days)}`}>
+              <td className={`duration-cell ${getDurationClass(ticket.inProgressDuration?.days, ticket.points)}`}>
                 {formatDuration(ticket.inProgressDuration?.days, ticket.inProgressDuration?.isActive)}
               </td>
-              <td className={`duration-cell ${getDurationClass(ticket.inReviewDuration?.days)}`}>
+              <td className={`duration-cell ${getDurationClass(ticket.inReviewDuration?.days, ticket.points)}`}>
                 {formatDuration(ticket.inReviewDuration?.days, ticket.inReviewDuration?.isActive)}
               </td>
               <td className={`points-cell ${getPointsClass(ticket.points)}`}>

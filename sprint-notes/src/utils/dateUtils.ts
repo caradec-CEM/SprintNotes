@@ -87,13 +87,43 @@ export function formatDuration(days: number | undefined, isActive: boolean = fal
 }
 
 /**
- * Get CSS class for duration color coding
+ * Calculate expected days based on story points
+ * Point scale:
+ * - 1 pt = 0.5-1 day
+ * - 2 pts = 1 day
+ * - 3 pts = 1.5 days
+ * - 5 pts = 2.5 days
+ * - 8 pts = 4 days
+ * - 13 pts = 6.5 days
  */
-export function getDurationClass(days: number | undefined): string {
+function getExpectedDays(points: number): number {
+  if (points <= 1) return 1;
+  if (points === 2) return 1;
+  if (points === 3) return 1.5;
+  if (points === 5) return 2.5;
+  if (points === 8) return 4;
+  if (points >= 13) return 6.5;
+  // Linear interpolation for other values
+  return points * 0.5;
+}
+
+/**
+ * Get CSS class for duration color coding based on story points
+ * Compares actual duration vs expected duration for the ticket size
+ */
+export function getDurationClass(days: number | undefined, points: number): string {
   if (!days) return 'duration--none';
-  if (days === 1) return 'duration--fast';    // Green: 1 day
-  if (days <= 3) return 'duration--medium';   // Yellow: 2-3 days
-  return 'duration--slow';                    // Red: >3 days
+
+  const expected = getExpectedDays(points);
+
+  // Green: On track or ahead (within expected time)
+  if (days <= expected) return 'duration--fast';
+
+  // Yellow: Slightly behind (up to 1 day over expected)
+  if (days <= expected + 1) return 'duration--medium';
+
+  // Red: Significantly behind (more than 1 day over expected)
+  return 'duration--slow';
 }
 
 /**
