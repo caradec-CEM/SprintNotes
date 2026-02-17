@@ -13,25 +13,19 @@ export interface StatusConfig {
 export const CP_STATUS_CONFIG: StatusConfig = {
   inProgress: ['In Progress'],
   inReview: [
-    'In Review',
-    'Code Review',
-    'Review',
-    'In Review (CP)',
-    'Peer Review',
+    'Review',              // ← Actual status from your JIRA
+    'Reviewing',           // ← Actual status from your JIRA
+    'Deployed to Staging', // ← Also counts as review phase
   ],
 };
 
 export const IT_STATUS_CONFIG: StatusConfig = {
   inProgress: [
-    'In Progress',
-    'In Progress (IT)',
-    'Working',
+    'IT - In Progress',    // ← IT tickets use "IT -" prefix
   ],
   inReview: [
-    'In Review',
-    'In Review (IT)',
-    'Review',
-    'Waiting for Approval',
+    'IT - Review',         // ← In case IT tickets have review status
+    'IT - Reviewing',
   ],
 };
 
