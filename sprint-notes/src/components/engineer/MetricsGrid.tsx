@@ -1,5 +1,6 @@
 import type { EngineerMetrics } from '../../types';
 import { DevReviewRatioBar } from '../common';
+import { formatDuration } from '../../utils/dateUtils';
 import './MetricsGrid.css';
 
 interface MetricsGridProps {
@@ -8,7 +9,7 @@ interface MetricsGridProps {
 
 interface MetricCardProps {
   label: string;
-  value: number;
+  value: number | string;
   suffix?: string;
   variant?: 'default' | 'primary' | 'success' | 'warning' | 'secondary' | 'muted';
 }
@@ -62,6 +63,20 @@ export function MetricsGrid({ metrics }: MetricsGridProps) {
           suffix="pts"
           variant="muted"
         />
+        {metrics.avgInProgressHours !== undefined && (
+          <MetricCard
+            label="Avg In Progress"
+            value={formatDuration(metrics.avgInProgressHours)}
+            variant="muted"
+          />
+        )}
+        {metrics.avgInReviewHours !== undefined && (
+          <MetricCard
+            label="Avg In Review"
+            value={formatDuration(metrics.avgInReviewHours)}
+            variant="muted"
+          />
+        )}
       </div>
       <div className="metrics-grid__ratio">
         <DevReviewRatioBar devPts={metrics.devPts} reviewPts={metrics.reviewPts} />

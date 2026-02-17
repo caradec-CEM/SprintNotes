@@ -1,9 +1,11 @@
 import { useState, useMemo } from 'react';
 import type { Ticket } from '../../types';
 import { TypeBadge, PriorityBadge, TicketLink } from '../common';
+import { formatDuration, getDurationClass } from '../../utils/dateUtils';
 import './TicketTable.css';
 
-type SortKey = 'key' | 'type' | 'priority' | 'points' | 'developer' | 'reviewer';
+type SortKey = 'key' | 'type' | 'priority' | 'points' | 'developer' | 'reviewer'
+  | 'inProgressDuration' | 'inReviewDuration';
 type SortDir = 'asc' | 'desc';
 
 interface TicketTableProps {
@@ -67,6 +69,12 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
         case 'reviewer':
           comparison = (a.reviewerName || 'zzz').localeCompare(b.reviewerName || 'zzz');
           break;
+        case 'inProgressDuration':
+          comparison = (b.inProgressDuration?.hours ?? 0) - (a.inProgressDuration?.hours ?? 0);
+          break;
+        case 'inReviewDuration':
+          comparison = (b.inReviewDuration?.hours ?? 0) - (a.inReviewDuration?.hours ?? 0);
+          break;
       }
 
       return sortDir === 'asc' ? comparison : -comparison;
@@ -99,6 +107,12 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
             <th onClick={() => handleSort('priority')} className="sortable">
               Priority {sortKey === 'priority' && (sortDir === 'asc' ? '↑' : '↓')}
             </th>
+            <th onClick={() => handleSort('inProgressDuration')} className="sortable">
+              In Progress {sortKey === 'inProgressDuration' && (sortDir === 'asc' ? '↑' : '↓')}
+            </th>
+            <th onClick={() => handleSort('inReviewDuration')} className="sortable">
+              In Review {sortKey === 'inReviewDuration' && (sortDir === 'asc' ? '↑' : '↓')}
+            </th>
             <th onClick={() => handleSort('points')} className="sortable">
               Pts {sortKey === 'points' && (sortDir === 'asc' ? '↑' : '↓')}
             </th>
@@ -129,6 +143,12 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
               </td>
               <td>
                 <PriorityBadge priority={ticket.priority} />
+              </td>
+              <td className={`duration-cell ${getDurationClass(ticket.inProgressDuration?.hours)}`}>
+                {formatDuration(ticket.inProgressDuration?.hours, ticket.inProgressDuration?.isActive)}
+              </td>
+              <td className={`duration-cell ${getDurationClass(ticket.inReviewDuration?.hours)}`}>
+                {formatDuration(ticket.inReviewDuration?.hours, ticket.inReviewDuration?.isActive)}
               </td>
               <td className={`points-cell ${getPointsClass(ticket.points)}`}>
                 {ticket.points || '-'}

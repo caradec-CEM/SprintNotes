@@ -1,5 +1,6 @@
 import { JIRA_CONFIG, JIRA_ENDPOINTS } from '../config/jira';
 import { findMemberByAccountId } from '../config/team';
+import { calculateStatusDuration } from '../utils/dateUtils';
 import type {
   Sprint,
   Ticket,
@@ -85,6 +86,10 @@ function transformIssue(raw: JiraIssueRaw): Ticket {
   // Determine project from key prefix
   const project: Project = raw.key.startsWith('IT') ? 'IT' : 'CP';
 
+  // Calculate status durations from changelog
+  const inProgressDuration = calculateStatusDuration(raw.changelog, 'In Progress');
+  const inReviewDuration = calculateStatusDuration(raw.changelog, 'In Review');
+
   return {
     key: raw.key,
     summary: raw.fields.summary,
@@ -98,6 +103,8 @@ function transformIssue(raw: JiraIssueRaw): Ticket {
     assignee: assigneeMember?.id ?? null,
     project,
     labels: raw.fields.labels ?? [],
+    inProgressDuration,
+    inReviewDuration,
   };
 }
 
@@ -156,6 +163,7 @@ export async function fetchSprintIssues(sprintId: string): Promise<Ticket[]> {
   const cpParams = new URLSearchParams({
     jql: cpJql,
     fields: fields.join(','),
+    expand: 'changelog',
     maxResults: '200',
   });
   const cpEndpoint = `${JIRA_ENDPOINTS.search}?${cpParams.toString()}`;
@@ -166,6 +174,7 @@ export async function fetchSprintIssues(sprintId: string): Promise<Ticket[]> {
   const itParams = new URLSearchParams({
     jql: itJql,
     fields: fields.join(','),
+    expand: 'changelog',
     maxResults: '200',
   });
   const itEndpoint = `${JIRA_ENDPOINTS.search}?${itParams.toString()}`;

@@ -116,6 +116,29 @@
   white-space: nowrap;
 }
 
+/* Duration cell styling */
+.duration-cell {
+  text-align: center;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.duration--none {
+  color: var(--text-muted);
+}
+
+.duration--fast {
+  color: #36b37e;  /* Green: <1 day */
+}
+
+.duration--medium {
+  color: #ff991f;  /* Yellow: 1-3 days */
+}
+
+.duration--slow {
+  color: #de350b;  /* Red: >3 days */
+}
+
 @media print {
   .ticket-table th.sortable::after {
     content: none;

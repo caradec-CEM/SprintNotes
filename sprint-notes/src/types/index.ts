@@ -24,6 +24,8 @@ export interface Ticket {
   assignee: string | null;    // For IT tickets
   project: Project;
   labels: string[];
+  inProgressDuration?: StatusDuration;
+  inReviewDuration?: StatusDuration;
 }
 
 // Sprint data
@@ -50,6 +52,8 @@ export interface EngineerMetrics {
   devPts: number;
   reviewPts: number;
   itCount: number;
+  avgInProgressHours?: number;
+  avgInReviewHours?: number;
 }
 
 // Sprint summary for history/trends
@@ -100,6 +104,32 @@ export interface SprintNotes {
   timeOff?: Record<string, EngineerTimeOff>;  // engineerId -> timeOff
 }
 
+// JIRA Changelog types
+export interface JiraChangelogItem {
+  field: string;
+  fieldtype: string;
+  fromString: string | null;
+  toString: string | null;
+}
+
+export interface JiraChangelogHistory {
+  id: string;
+  created: string;
+  items: JiraChangelogItem[];
+}
+
+export interface JiraChangelog {
+  startAt: number;
+  maxResults: number;
+  total: number;
+  histories: JiraChangelogHistory[];
+}
+
+export interface StatusDuration {
+  hours: number;      // Business hours only
+  isActive: boolean;  // Currently in this status
+}
+
 // Raw JIRA API response types
 export interface JiraIssueRaw {
   key: string;
@@ -114,6 +144,7 @@ export interface JiraIssueRaw {
     customfield_10058: { accountId: string; displayName: string } | null;  // Reviewer (single)
     customfield_10020: Array<{ id: number; name: string }> | null;  // Sprint
   };
+  changelog?: JiraChangelog;
 }
 
 export interface JiraSprintRaw {

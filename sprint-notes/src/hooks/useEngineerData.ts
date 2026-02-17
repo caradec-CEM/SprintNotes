@@ -48,6 +48,24 @@ export function useEngineerData(engineerId: string): EngineerData {
     const devPts = devTickets.reduce((sum, t) => sum + t.points, 0);
     const reviewPts = reviewTickets.reduce((sum, t) => sum + t.points, 0);
 
+    // Calculate average durations
+    const ticketsWithInProgress = allTickets.filter(t => t.inProgressDuration?.hours);
+    const ticketsWithInReview = allTickets.filter(t => t.inReviewDuration?.hours);
+
+    const totalInProgressHours = allTickets.reduce(
+      (sum, t) => sum + (t.inProgressDuration?.hours ?? 0), 0
+    );
+    const totalInReviewHours = allTickets.reduce(
+      (sum, t) => sum + (t.inReviewDuration?.hours ?? 0), 0
+    );
+
+    const avgInProgressHours = ticketsWithInProgress.length > 0
+      ? totalInProgressHours / ticketsWithInProgress.length
+      : undefined;
+    const avgInReviewHours = ticketsWithInReview.length > 0
+      ? totalInReviewHours / ticketsWithInReview.length
+      : undefined;
+
     const metrics: EngineerMetrics = {
       totalItems: allTickets.length,
       devCount: devTickets.length,
@@ -55,6 +73,8 @@ export function useEngineerData(engineerId: string): EngineerData {
       devPts,
       reviewPts,
       itCount: itTickets.length,
+      avgInProgressHours,
+      avgInReviewHours,
     };
 
     // Get notes
