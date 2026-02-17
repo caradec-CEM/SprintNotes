@@ -12,11 +12,7 @@ export interface StatusConfig {
 
 export const CP_STATUS_CONFIG: StatusConfig = {
   inProgress: ['In Progress'],
-  inReview: [
-    'Review',              // ← Actual status from your JIRA
-    'Reviewing',           // ← Actual status from your JIRA
-    'Deployed to Staging', // ← Also counts as review phase
-  ],
+  inReview: ['Reviewing'],  // ← The actual review status in your JIRA
 };
 
 export const IT_STATUS_CONFIG: StatusConfig = {
