@@ -116,13 +116,13 @@ export function getDurationClass(days: number | undefined, points: number): stri
 
   const expected = getExpectedDays(points);
 
-  // Green: On track or ahead (within expected time)
-  if (days <= expected) return 'duration--fast';
+  // Green: On track or reasonably close (expected + 1 day buffer for estimates)
+  if (days <= expected + 1) return 'duration--fast';
 
-  // Yellow: Slightly behind (up to 1 day over expected)
-  if (days <= expected + 1) return 'duration--medium';
+  // Yellow: Behind but not critical (expected + 2 days)
+  if (days <= expected + 2) return 'duration--medium';
 
-  // Red: Significantly behind (more than 1 day over expected)
+  // Red: Significantly behind (more than 2 days over expected)
   return 'duration--slow';
 }
 
