@@ -1,0 +1,77 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Type badges */
+.badge--type {
+  color: white;
+}
+
+.badge--story {
+  background-color: var(--color-story);
+}
+
+.badge--bug {
+  background-color: var(--color-bug);
+}
+
+.badge--task {
+  background-color: var(--color-task);
+}
+
+/* Priority badges - subtle, text-only style */
+.badge--priority {
+  background: transparent;
+  color: var(--color-text-subtle);
+  font-weight: 500;
+  font-size: var(--font-size-xs);
+  padding: 0;
+}
+
+.badge--highest {
+  color: var(--color-highest);
+}
+
+.badge--high {
+  color: var(--color-high);
+}
+
+.badge--medium {
+  color: var(--color-text-subtle);
+}
+
+.badge--low {
+  color: var(--color-text-subtle);
+}
+
+.badge--lowest {
+  color: var(--color-text-subtle);
+}
+
+/* Role badges */
+.badge--role {
+  background-color: var(--color-bg-hover);
+  color: var(--color-text);
+}
+
+.badge--dev {
+  background-color: #e3fcef;
+  color: #006644;
+}
+
+.badge--review {
+  background-color: #deebff;
+  color: #0747a6;
+}
+
+.badge--it {
+  background-color: #fff0b3;
+  color: #172b4d;
+}

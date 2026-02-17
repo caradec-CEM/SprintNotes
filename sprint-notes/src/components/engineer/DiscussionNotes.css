@@ -1,0 +1,52 @@
+.discussion-notes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-md);
+}
+
+.discussion-notes__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.discussion-notes__label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.discussion-notes__textarea {
+  padding: var(--space-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  background: var(--color-bg-card);
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.5;
+}
+
+.discussion-notes__textarea::placeholder {
+  color: var(--color-text-subtle);
+}
+
+.discussion-notes__textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.2);
+}
+
+@media print {
+  .discussion-notes {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .discussion-notes__textarea {
+    border: 1px solid var(--color-border);
+    background: transparent;
+    min-height: 60px;
+  }
+}

@@ -1,0 +1,15 @@
+.load-balance-chart {
+  padding: var(--space-md) 0;
+}
+
+.load-balance-chart__empty {
+  padding: var(--space-lg);
+  text-align: center;
+  color: var(--color-text-subtle);
+}
+
+@media print {
+  .load-balance-chart {
+    display: none;
+  }
+}

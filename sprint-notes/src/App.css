@@ -1,0 +1,36 @@
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+}
+
+.app__content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Error boundary fallback */
+.error-boundary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  padding: var(--space-xl);
+  text-align: center;
+}
+
+.error-boundary h2 {
+  color: var(--color-danger);
+  margin-bottom: var(--space-md);
+}
+
+.error-boundary p {
+  color: var(--color-text-subtle);
+  margin-bottom: var(--space-lg);
+}
+
+.error-boundary button {
+  padding: var(--space-sm) var(--space-lg);
+}

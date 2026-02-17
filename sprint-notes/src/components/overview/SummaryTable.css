@@ -1,0 +1,119 @@
+.summary-table-wrapper {
+  overflow-x: auto;
+}
+
+.summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.summary-table th,
+.summary-table td {
+  padding: var(--space-sm) var(--space-md);
+  text-align: center;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.summary-table th {
+  font-weight: 600;
+  color: var(--color-text-subtle);
+  background: var(--color-bg);
+  text-transform: uppercase;
+  font-size: var(--font-size-xs);
+  letter-spacing: 0.5px;
+}
+
+.summary-table__name {
+  text-align: left !important;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.summary-table__avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+.summary-table__pts {
+  font-weight: 600;
+  color: var(--color-success);
+}
+
+.summary-table__dev-pts {
+  font-weight: 600;
+  color: #006644;
+}
+
+.summary-table__review-pts {
+  font-weight: 600;
+  color: #0747a6;
+}
+
+.summary-table__total {
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.summary-table__total-muted {
+  font-weight: 500;
+  color: var(--color-text-subtle);
+}
+
+.summary-table__th--dev {
+  color: #006644;
+}
+
+.summary-table__th--review {
+  color: #0747a6;
+}
+
+.summary-table__th--muted {
+  color: var(--color-text-subtle);
+  opacity: 0.8;
+}
+
+.summary-table__pto {
+  text-align: center;
+}
+
+.summary-table__pto-badge {
+  display: inline-block;
+  background: #fff0b3;
+  color: #172b4d;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.summary-table__pts-day {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.summary-table tbody tr:hover {
+  background: var(--color-bg-hover);
+}
+
+.summary-table tfoot {
+  background: var(--color-bg);
+}
+
+.summary-table tfoot td {
+  border-top: 2px solid var(--color-border);
+}
+
+.summary-table__empty {
+  padding: var(--space-lg);
+  text-align: center;
+  color: var(--color-text-subtle);
+}
+
+@media print {
+  .summary-table tbody tr:hover {
+    background: transparent;
+  }
+}

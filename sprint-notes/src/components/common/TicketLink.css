@@ -1,0 +1,27 @@
+.ticket-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.ticket-link__key {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-primary);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.ticket-link__key:hover {
+  text-decoration: underline;
+}
+
+.ticket-link__summary {
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 400px;
+}

@@ -1,0 +1,181 @@
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+} from 'recharts';
+import { useIndividualTrends, calculateDelta } from '../../hooks/useIndividualTrends';
+import './IndividualTrends.css';
+
+interface IndividualTrendsProps {
+  engineerId: string;
+}
+
+export function IndividualTrends({ engineerId }: IndividualTrendsProps) {
+  const { velocityData, currentVsPrevious } = useIndividualTrends(engineerId, 6);
+
+  if (velocityData.length < 2) {
+    return (
+      <div className="individual-trends__empty">
+        Not enough sprint history for trends. Data will appear after 2+ sprints.
+      </div>
+    );
+  }
+
+  const { current, previous } = currentVsPrevious;
+
+  // Calculate deltas for comparison
+  const devPtsDelta = calculateDelta(current, previous, 'devPts');
+  const reviewPtsDelta = calculateDelta(current, previous, 'reviewPts');
+  const totalValue = (current?.devPts ?? 0) + (current?.reviewPts ?? 0);
+  const previousValue = (previous?.devPts ?? 0) + (previous?.reviewPts ?? 0);
+  const totalDeltaValue = Math.abs(totalValue - previousValue);
+  const totalDirection: 'up' | 'down' | 'same' =
+    totalValue > previousValue ? 'up' : totalValue < previousValue ? 'down' : 'same';
+
+  const totalDelta = {
+    value: totalValue,
+    delta: totalDeltaValue,
+    direction: totalDirection,
+  };
+
+  return (
+    <div className="individual-trends">
+      {/* Sprint Comparison */}
+      <div className="individual-trends__comparison">
+        <h4 className="individual-trends__subtitle">vs Previous Sprint</h4>
+        <div className="comparison-grid">
+          <ComparisonCard
+            label="Dev Points"
+            current={devPtsDelta.value}
+            delta={devPtsDelta.delta}
+            direction={devPtsDelta.direction}
+            variant="dev"
+          />
+          <ComparisonCard
+            label="Review Points"
+            current={reviewPtsDelta.value}
+            delta={reviewPtsDelta.delta}
+            direction={reviewPtsDelta.direction}
+            variant="review"
+          />
+          <ComparisonCard
+            label="Total Points"
+            current={totalDelta.value}
+            delta={totalDelta.delta}
+            direction={totalDelta.direction}
+            variant="muted"
+          />
+        </div>
+      </div>
+
+      {/* Charts */}
+      <div className="individual-trends__charts">
+        {/* Velocity Line Chart */}
+        <div className="individual-trends__chart">
+          <h4 className="individual-trends__subtitle">Velocity Trend</h4>
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={velocityData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#dfe1e6" />
+              <XAxis
+                dataKey="sprintName"
+                tick={{ fontSize: 12 }}
+                stroke="#5e6c84"
+              />
+              <YAxis tick={{ fontSize: 12 }} stroke="#5e6c84" />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: '#fff',
+                  border: '1px solid #dfe1e6',
+                  borderRadius: '4px',
+                }}
+              />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="devPts"
+                stroke="#36b37e"
+                strokeWidth={2}
+                dot={{ fill: '#36b37e', strokeWidth: 2 }}
+                name="Dev Points"
+              />
+              <Line
+                type="monotone"
+                dataKey="reviewPts"
+                stroke="#0052cc"
+                strokeWidth={2}
+                strokeDasharray="5 5"
+                dot={{ fill: '#0052cc', strokeWidth: 2 }}
+                name="Review Points"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Dev/Review Balance Stacked Bar */}
+        <div className="individual-trends__chart">
+          <h4 className="individual-trends__subtitle">Dev / Review Balance</h4>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={velocityData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#dfe1e6" />
+              <XAxis
+                dataKey="sprintName"
+                tick={{ fontSize: 12 }}
+                stroke="#5e6c84"
+              />
+              <YAxis tick={{ fontSize: 12 }} stroke="#5e6c84" />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: '#fff',
+                  border: '1px solid #dfe1e6',
+                  borderRadius: '4px',
+                }}
+              />
+              <Legend />
+              <Bar
+                dataKey="devPts"
+                stackId="a"
+                fill="#36b37e"
+                name="Dev Points"
+              />
+              <Bar
+                dataKey="reviewPts"
+                stackId="a"
+                fill="#4c9aff"
+                name="Review Points"
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface ComparisonCardProps {
+  label: string;
+  current: number;
+  delta: number;
+  direction: 'up' | 'down' | 'same';
+  variant?: 'default' | 'dev' | 'review' | 'muted';
+}
+
+function ComparisonCard({ label, current, delta, direction, variant = 'default' }: ComparisonCardProps) {
+  return (
+    <div className={`comparison-card comparison-card--${variant}`}>
+      <div className="comparison-card__label">{label}</div>
+      <div className="comparison-card__value">{current}</div>
+      {direction !== 'same' && (
+        <div className={`comparison-card__delta comparison-card__delta--${direction}`}>
+          {direction === 'up' ? '↑' : '↓'} {delta}
+        </div>
+      )}
+    </div>
+  );
+}

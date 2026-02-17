@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__atlassian__getAccessibleAtlassianResources",
+      "mcp__atlassian__searchJiraIssuesUsingJql",
+      "mcp__atlassian__getJiraIssue",
+      "mcp__atlassian__lookupJiraAccountId",
+      "Bash(findstr:*)",
+      "Bash(powershell:*)",
+      "Bash(npm create vite@latest sprint-notes -- --template react-ts)",
+      "Bash(npm install)",
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run build:*)",
+      "Bash(ls:*)",
+      "mcp__atlassian__atlassianUserInfo",
+      "Bash(timeout 10 npm run dev:*)",
+      "Bash(start /B npm run dev)",
+      "Bash(dir /s \"D:\\\\GitHub\\\\CEM\\\\team-lead-stuff\\\\sprint-notes\\\\src\\\\components\")",
+      "Bash(timeout 5 npm run dev:*)",
+      "Bash(netstat:*)",
+      "Bash(taskkill:*)",
+      "Bash(git checkout:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ]
+  }
+}

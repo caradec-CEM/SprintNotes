@@ -1,0 +1,116 @@
+.individual-trends {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.individual-trends__empty {
+  padding: var(--space-lg);
+  text-align: center;
+  color: var(--color-text-subtle);
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+}
+
+.individual-trends__subtitle {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-subtle);
+  margin-bottom: var(--space-md);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Comparison Grid */
+.individual-trends__comparison {
+  background: var(--color-bg);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+}
+
+.comparison-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-md);
+}
+
+.comparison-card {
+  text-align: center;
+}
+
+.comparison-card__label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+  margin-bottom: var(--space-xs);
+}
+
+.comparison-card__value {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.comparison-card__delta {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  margin-top: var(--space-xs);
+}
+
+.comparison-card__delta--up {
+  color: var(--color-success);
+}
+
+.comparison-card__delta--down {
+  color: var(--color-danger);
+}
+
+/* Card variants */
+.comparison-card--dev {
+  border-left: 3px solid #36b37e;
+  padding-left: var(--space-sm);
+}
+
+.comparison-card--dev .comparison-card__value {
+  color: #006644;
+}
+
+.comparison-card--review {
+  border-left: 3px solid #0052cc;
+  padding-left: var(--space-sm);
+}
+
+.comparison-card--review .comparison-card__value {
+  color: #0747a6;
+}
+
+.comparison-card--muted {
+  opacity: 0.7;
+}
+
+.comparison-card--muted .comparison-card__value {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-subtle);
+}
+
+/* Charts */
+.individual-trends__charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-lg);
+}
+
+.individual-trends__chart {
+  background: var(--color-bg);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+}
+
+@media print {
+  .individual-trends__charts {
+    display: none;
+  }
+
+  .comparison-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

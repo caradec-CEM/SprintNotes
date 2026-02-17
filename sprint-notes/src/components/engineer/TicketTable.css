@@ -1,0 +1,127 @@
+.ticket-table-wrapper {
+  overflow-x: auto;
+}
+
+.ticket-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.ticket-table th,
+.ticket-table td {
+  padding: var(--space-sm) var(--space-md);
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ticket-table th {
+  font-weight: 600;
+  color: var(--color-text-subtle);
+  background: var(--color-bg);
+  white-space: nowrap;
+}
+
+.ticket-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.ticket-table th.sortable:hover {
+  color: var(--color-primary);
+}
+
+.ticket-table tbody tr:hover {
+  background: var(--color-bg-hover);
+}
+
+.ticket-table .summary-cell {
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ticket-table .points-cell {
+  text-align: center;
+  font-weight: 700;
+  font-size: var(--font-size-md);
+  border-radius: 4px;
+  min-width: 36px;
+}
+
+/* Points color coding by value */
+.points--none {
+  color: var(--color-text-subtle);
+  background: transparent;
+}
+
+.points--xsmall {
+  color: #006644;
+  background: #e3fcef;
+}
+
+.points--small {
+  color: #0747a6;
+  background: #deebff;
+}
+
+.points--medium {
+  color: #5243aa;
+  background: #eae6ff;
+}
+
+.points--large {
+  color: #ff8b00;
+  background: #fff4e5;
+}
+
+.points--xlarge {
+  color: #bf2600;
+  background: #ffebe6;
+}
+
+.ticket-table__empty {
+  padding: var(--space-lg);
+  text-align: center;
+  color: var(--color-text-subtle);
+}
+
+/* Person name styling */
+.person {
+  white-space: nowrap;
+  font-size: var(--font-size-sm);
+}
+
+.person--highlight {
+  background: #deebff;
+  color: var(--color-primary);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+/* Labels */
+.labels-cell {
+  max-width: 200px;
+}
+
+.label-tag {
+  display: inline-block;
+  background: var(--color-bg-hover);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: var(--font-size-xs);
+  margin: 2px;
+  white-space: nowrap;
+}
+
+@media print {
+  .ticket-table th.sortable::after {
+    content: none;
+  }
+
+  .ticket-table tbody tr:hover {
+    background: transparent;
+  }
+}

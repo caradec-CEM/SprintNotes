@@ -1,0 +1,64 @@
+{
+  "sprints": [
+    {
+      "id": "924",
+      "name": "Engineering Sprint 50",
+      "date": "2025-11-23",
+      "engineers": {
+        "efron": { "devPts": 29.5, "reviewPts": 0, "devCount": 17, "reviewCount": 2, "itCount": 7 },
+        "erick": { "devPts": 17, "reviewPts": 12, "devCount": 10, "reviewCount": 6, "itCount": 6 },
+        "briano": { "devPts": 9, "reviewPts": 5, "devCount": 3, "reviewCount": 5, "itCount": 4 },
+        "mitchell": { "devPts": 12, "reviewPts": 12, "devCount": 10, "reviewCount": 4, "itCount": 5 },
+        "wlad": { "devPts": 14, "reviewPts": 15, "devCount": 5, "reviewCount": 7, "itCount": 6 }
+      }
+    },
+    {
+      "id": "925",
+      "name": "Engineering Sprint 51",
+      "date": "2025-12-07",
+      "engineers": {
+        "efron": { "devPts": 24.5, "reviewPts": 7, "devCount": 13, "reviewCount": 5, "itCount": 11 },
+        "erick": { "devPts": 13, "reviewPts": 3, "devCount": 6, "reviewCount": 1, "itCount": 10 },
+        "briano": { "devPts": 9, "reviewPts": 6, "devCount": 4, "reviewCount": 2, "itCount": 3 },
+        "mitchell": { "devPts": 8, "reviewPts": 7, "devCount": 6, "reviewCount": 3, "itCount": 4 },
+        "wlad": { "devPts": 13, "reviewPts": 13, "devCount": 6, "reviewCount": 5, "itCount": 5 }
+      }
+    },
+    {
+      "id": "958",
+      "name": "Engineering Sprint 52",
+      "date": "2025-12-21",
+      "engineers": {
+        "efron": { "devPts": 6.5, "reviewPts": 2, "devCount": 6, "reviewCount": 3, "itCount": 6 },
+        "erick": { "devPts": 3, "reviewPts": 3, "devCount": 2, "reviewCount": 1, "itCount": 2 },
+        "briano": { "devPts": 9, "reviewPts": 2, "devCount": 4, "reviewCount": 2, "itCount": 1 },
+        "mitchell": { "devPts": 3, "reviewPts": 0, "devCount": 2, "reviewCount": 0, "itCount": 2 },
+        "wlad": { "devPts": 10, "reviewPts": 0, "devCount": 4, "reviewCount": 1, "itCount": 2 }
+      }
+    },
+    {
+      "id": "991",
+      "name": "Engineering Sprint 53",
+      "date": "2026-01-04",
+      "engineers": {
+        "efron": { "devPts": 15.5, "reviewPts": 11, "devCount": 10, "reviewCount": 8, "itCount": 7 },
+        "erick": { "devPts": 12, "reviewPts": 5, "devCount": 7, "reviewCount": 4, "itCount": 7 },
+        "briano": { "devPts": 18, "reviewPts": 8, "devCount": 9, "reviewCount": 3, "itCount": 4 },
+        "mitchell": { "devPts": 11, "reviewPts": 9, "devCount": 7, "reviewCount": 3, "itCount": 4 },
+        "wlad": { "devPts": 21, "reviewPts": 10, "devCount": 8, "reviewCount": 4, "itCount": 1 }
+      }
+    },
+    {
+      "id": "1025",
+      "name": "Engineering Sprint 54",
+      "date": "2026-01-18",
+      "engineers": {
+        "efron": { "devPts": 11.5, "reviewPts": 3, "devCount": 11, "reviewCount": 4, "itCount": 8 },
+        "erick": { "devPts": 13, "reviewPts": 4, "devCount": 7, "reviewCount": 3, "itCount": 8 },
+        "briano": { "devPts": 12, "reviewPts": 27, "devCount": 6, "reviewCount": 14, "itCount": 6 },
+        "mitchell": { "devPts": 10, "reviewPts": 8, "devCount": 5, "reviewCount": 3, "itCount": 2 },
+        "wlad": { "devPts": 33, "reviewPts": 11, "devCount": 15, "reviewCount": 5, "itCount": 4 }
+      }
+    }
+  ]
+}
