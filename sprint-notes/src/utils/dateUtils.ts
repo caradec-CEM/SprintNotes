@@ -2,7 +2,12 @@ import type { JiraChangelog, StatusDuration } from '../types';
 
 /**
  * Calculate business days (weekdays only) between two timestamps
- * Uses local timezone to properly identify weekends
+ * Uses local timezone and excludes partial days outside business hours
+ *
+ * Rules:
+ * - If start time is after 5 PM, don't count that day (after business hours)
+ * - If end time is before 9 AM, don't count that day (before business hours)
+ * - Weekends are always excluded
  */
 export function calculateBusinessDays(start: string, end: string, debug = false): number {
   const startDate = new Date(start);
@@ -12,17 +17,37 @@ export function calculateBusinessDays(start: string, end: string, debug = false)
     console.log('calculateBusinessDays:', {
       start: startDate.toLocaleString('en-US'),
       end: endDate.toLocaleString('en-US'),
+      startHour: startDate.getHours(),
+      endHour: endDate.getHours(),
     });
   }
 
-  // Normalize to start of day in local timezone for accurate day counting
+  // Get day boundaries in local timezone
   const startDay = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
   const endDay = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
 
-  let businessDays = 0;
-  const current = new Date(startDay);
+  // Adjust start day if after business hours (5 PM = 17:00)
+  const effectiveStartDay = new Date(startDay);
+  if (startDate.getHours() >= 17) {
+    effectiveStartDay.setDate(effectiveStartDay.getDate() + 1);
+    if (debug) {
+      console.log(`  Start after 5 PM, moving to next day: ${effectiveStartDay.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`);
+    }
+  }
 
-  while (current <= endDay) {
+  // Adjust end day if before business hours (9 AM = 09:00)
+  const effectiveEndDay = new Date(endDay);
+  if (endDate.getHours() < 9) {
+    effectiveEndDay.setDate(effectiveEndDay.getDate() - 1);
+    if (debug) {
+      console.log(`  End before 9 AM, moving to previous day: ${effectiveEndDay.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`);
+    }
+  }
+
+  let businessDays = 0;
+  const current = new Date(effectiveStartDay);
+
+  while (current <= effectiveEndDay) {
     const dayOfWeek = current.getDay();
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
