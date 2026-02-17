@@ -78,12 +78,13 @@ export function formatDuration(days: number | undefined, isActive: boolean = fal
   if (days === undefined || days === 0) return '-';
 
   const prefix = isActive ? '~' : '';
+  const rounded = Math.round(days);
 
-  if (days === 1) {
+  if (rounded === 1) {
     return `${prefix}1d`;
   }
 
-  return `${prefix}${days}d`;
+  return `${prefix}${rounded}d`;
 }
 
 /**

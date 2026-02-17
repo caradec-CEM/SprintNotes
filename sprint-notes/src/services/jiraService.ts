@@ -196,6 +196,18 @@ export async function fetchSprintIssues(sprintId: string): Promise<Ticket[]> {
   const allIssues = [...cpData.issues, ...itData.issues];
   const tickets = allIssues.map(transformIssue);
 
+  // TEMPORARY: Collect all unique labels for analysis
+  const allLabels = new Set<string>();
+  allIssues.forEach(issue => {
+    const labels = issue.fields.labels || [];
+    labels.forEach(label => allLabels.add(label));
+  });
+  if (allLabels.size > 0) {
+    console.log(`\n=== LABELS IN SPRINT ${sprintId} ===`);
+    console.log(Array.from(allLabels).sort().join(', '));
+    console.log('================\n');
+  }
+
   // Debug logging
   const cpTickets = tickets.filter(t => t.project === 'CP');
   const itTickets = tickets.filter(t => t.project === 'IT');
