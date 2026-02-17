@@ -67,7 +67,7 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
           comparison = b.points - a.points;
           break;
         case 'developer':
-          comparison = (a.developerName || 'zzz').localeCompare(b.developerName || 'zzz');
+          comparison = (a.developerNames[0] || 'zzz').localeCompare(b.developerNames[0] || 'zzz');
           break;
         case 'reviewer':
           comparison = (a.reviewerName || 'zzz').localeCompare(b.reviewerName || 'zzz');
@@ -110,8 +110,9 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
     );
   }
 
-  // Check if the current engineer is the developer for highlighting
+  // Check if the current engineer is a developer for highlighting
   const isCurrentEngineer = (memberId: string | null) => memberId === engineerId;
+  const isCurrentDeveloper = (developers: string[]) => developers.includes(engineerId);
 
   return (
     <div className="ticket-table-wrapper">
@@ -174,7 +175,7 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
               </td>
               <td className="duration-cell">
                 <span className={
-                  ticket.developer === engineerId
+                  isCurrentDeveloper(ticket.developers)
                     ? getDurationClass(ticket.inProgressDuration?.days, ticket.points)
                     : 'duration--muted'
                 }>
@@ -196,9 +197,19 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
               {showDevReviewer && (
                 <>
                   <td>
-                    <span className={`person ${isCurrentEngineer(ticket.developer) ? 'person--highlight' : ''}`}>
-                      {ticket.developerName || '-'}
-                    </span>
+                    {ticket.developerNames.length > 0 ? (
+                      ticket.developerNames.map((name, idx) => (
+                        <span
+                          key={idx}
+                          className={`person ${isCurrentEngineer(ticket.developers[idx]) ? 'person--highlight' : ''}`}
+                          style={{ marginRight: '4px' }}
+                        >
+                          {name}
+                        </span>
+                      ))
+                    ) : (
+                      <span>-</span>
+                    )}
                   </td>
                   <td>
                     <span className={`person ${isCurrentEngineer(ticket.reviewer) ? 'person--highlight' : ''}`}>

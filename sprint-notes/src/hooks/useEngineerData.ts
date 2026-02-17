@@ -27,7 +27,7 @@ export function useEngineerData(engineerId: string): EngineerData {
 
     // Categorize tickets
     const devTickets = tickets.filter(
-      (t) => t.developer === engineerId && t.project === 'CP'
+      (t) => t.developers.includes(engineerId) && t.project === 'CP'
     );
     const reviewTickets = tickets.filter(
       (t) => t.reviewer === engineerId && t.project === 'CP'
@@ -39,7 +39,7 @@ export function useEngineerData(engineerId: string): EngineerData {
     // All tickets this engineer touched
     const allTickets = tickets.filter(
       (t) =>
-        t.developer === engineerId ||
+        t.developers.includes(engineerId) ||
         t.reviewer === engineerId ||
         t.assignee === engineerId
     );

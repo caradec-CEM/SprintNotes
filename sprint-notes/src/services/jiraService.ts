@@ -72,18 +72,36 @@ function transformIssue(raw: JiraIssueRaw): Ticket {
   const reviewerField = raw.fields.customfield_10058;
   const assigneeField = raw.fields.assignee;
 
-  // Find team member IDs from JIRA account IDs
-  const developerAccountId = developerField?.[0]?.accountId ?? null;
+  // Handle multiple developers (customfield_10124 is an array)
+  const developers: string[] = [];
+  const developerNames: string[] = [];
+
+  if (developerField && Array.isArray(developerField)) {
+    developerField.forEach(dev => {
+      const member = findMemberByAccountId(dev.accountId);
+      if (member) {
+        developers.push(member.id);
+        developerNames.push(member.name);
+      } else if (dev.displayName) {
+        // Non-team member, use display name as ID
+        developers.push(dev.displayName);
+        developerNames.push(dev.displayName);
+      }
+    });
+  }
+
+  // Backwards compatibility: keep first developer as singular fields
+  const developer = developers[0] ?? null;
+  const developerName = developerNames[0] ?? null;
+
+  // Reviewer (single)
   const reviewerAccountId = reviewerField?.accountId ?? null;
-  const assigneeAccountId = assigneeField?.accountId ?? null;
-
-  const developerMember = findMemberByAccountId(developerAccountId);
   const reviewerMember = findMemberByAccountId(reviewerAccountId);
-  const assigneeMember = findMemberByAccountId(assigneeAccountId);
-
-  // Get display names (use JIRA display name if not a team member)
-  const developerName = developerMember?.name ?? developerField?.[0]?.displayName ?? null;
   const reviewerName = reviewerMember?.name ?? reviewerField?.displayName ?? null;
+
+  // Assignee (for IT tickets)
+  const assigneeAccountId = assigneeField?.accountId ?? null;
+  const assigneeMember = findMemberByAccountId(assigneeAccountId);;
 
   // Determine project from key prefix
   const project: Project = raw.key.startsWith('IT') ? 'IT' : 'CP';
@@ -113,8 +131,10 @@ function transformIssue(raw: JiraIssueRaw): Ticket {
     type: raw.fields.issuetype.name as TicketType,
     priority: raw.fields.priority.name as Priority,
     points: raw.fields.customfield_10031 ?? 0,
-    developer: developerMember?.id ?? null,
-    developerName,
+    developers,
+    developerNames,
+    developer,      // Backwards compat
+    developerName,  // Backwards compat
     reviewer: reviewerMember?.id ?? null,
     reviewerName,
     assignee: assigneeMember?.id ?? null,

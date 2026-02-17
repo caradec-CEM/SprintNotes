@@ -23,8 +23,10 @@ export interface Ticket {
   type: TicketType;
   priority: Priority;
   points: number;
-  developer: string | null;   // Team member ID
-  developerName: string | null; // Display name
+  developers: string[];        // Team member IDs (can be multiple)
+  developerNames: string[];    // Display names
+  developer: string | null;    // DEPRECATED: Use developers[0] for backwards compat
+  developerName: string | null; // DEPRECATED: Use developerNames[0]
   reviewer: string | null;    // Team member ID
   reviewerName: string | null;  // Display name
   assignee: string | null;    // For IT tickets
