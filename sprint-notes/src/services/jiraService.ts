@@ -1,6 +1,7 @@
 import { JIRA_CONFIG, JIRA_ENDPOINTS } from '../config/jira';
 import { findMemberByAccountId } from '../config/team';
 import { getStatusConfig } from '../config/statuses';
+import { categorizeLabels } from '../config/labels';
 import { calculateStatusDuration } from '../utils/dateUtils';
 import type {
   Sprint,
@@ -102,6 +103,10 @@ function transformIssue(raw: JiraIssueRaw): Ticket {
     raw.key
   );
 
+  // Categorize labels
+  const labels = raw.fields.labels ?? [];
+  const categorizedLabels = categorizeLabels(labels);
+
   return {
     key: raw.key,
     summary: raw.fields.summary,
@@ -114,7 +119,8 @@ function transformIssue(raw: JiraIssueRaw): Ticket {
     reviewerName,
     assignee: assigneeMember?.id ?? null,
     project,
-    labels: raw.fields.labels ?? [],
+    labels,
+    categorizedLabels,
     inProgressDuration,
     inReviewDuration,
   };

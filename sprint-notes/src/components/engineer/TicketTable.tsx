@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import type { Ticket } from '../../types';
 import { TypeBadge, PriorityBadge, TicketLink } from '../common';
 import { formatDuration, getDurationClass } from '../../utils/dateUtils';
+import { getLabelDisplayName } from '../../config/labels';
 import './TicketTable.css';
 
 type SortKey = 'key' | 'type' | 'priority' | 'points' | 'developer' | 'reviewer'
@@ -180,9 +181,21 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
                 </>
               )}
               <td className="labels-cell">
-                {ticket.labels.map((label) => (
-                  <span key={label} className="label-tag">{label}</span>
+                {ticket.categorizedLabels.product.map((label) => (
+                  <span key={label} className="label-tag label-tag--product" title="Product">
+                    {getLabelDisplayName(label)}
+                  </span>
                 ))}
+                {ticket.categorizedLabels.platform.map((label) => (
+                  <span key={label} className="label-tag label-tag--platform" title="Platform">
+                    {getLabelDisplayName(label)}
+                  </span>
+                ))}
+                {ticket.categorizedLabels.misc.length > 0 && (
+                  <span className="label-tag label-tag--misc" title={ticket.categorizedLabels.misc.join(', ')}>
+                    +{ticket.categorizedLabels.misc.length}
+                  </span>
+                )}
               </td>
             </tr>
           ))}

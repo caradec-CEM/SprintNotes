@@ -11,6 +11,12 @@ export type TicketType = 'Story' | 'Bug' | 'Task';
 export type Priority = 'Highest' | 'High' | 'Medium' | 'Low' | 'Lowest';
 export type Project = 'CP' | 'IT';
 
+export interface CategorizedLabels {
+  product: string[];    // Engineering, IBS, PABS
+  platform: string[];   // Survey, Dashboard, Template Safari, etc.
+  misc: string[];       // AI, Hotfix, Late, On-Time, Recurring
+}
+
 export interface Ticket {
   key: string;          // 'CP-3063'
   summary: string;
@@ -24,6 +30,7 @@ export interface Ticket {
   assignee: string | null;    // For IT tickets
   project: Project;
   labels: string[];
+  categorizedLabels: CategorizedLabels;
   inProgressDuration?: StatusDuration;
   inReviewDuration?: StatusDuration;
 }

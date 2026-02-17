@@ -103,17 +103,40 @@
 
 /* Labels */
 .labels-cell {
-  max-width: 200px;
+  max-width: 250px;
 }
 
 .label-tag {
   display: inline-block;
-  background: var(--color-bg-hover);
-  padding: 2px 6px;
+  padding: 3px 8px;
   border-radius: 3px;
   font-size: var(--font-size-xs);
   margin: 2px;
   white-space: nowrap;
+  font-weight: 600;
+}
+
+/* Product labels - Blue */
+.label-tag--product {
+  background: #deebff;
+  color: #0747a6;
+  border: 1px solid #b3d4ff;
+}
+
+/* Platform labels - Purple */
+.label-tag--platform {
+  background: #eae6ff;
+  color: #5243aa;
+  border: 1px solid #c0b6f2;
+}
+
+/* Misc labels - Gray (collapsed count) */
+.label-tag--misc {
+  background: var(--color-bg-hover);
+  color: var(--color-text-subtle);
+  border: 1px solid var(--color-border);
+  font-weight: 400;
+  cursor: help;
 }
 
 /* Duration cell styling */
