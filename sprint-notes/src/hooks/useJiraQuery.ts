@@ -111,9 +111,6 @@ export function useSprintData() {
       const data = await fetchSprintData(sprintId);
 
       if (data) {
-        const totalPts = data.tickets.reduce((sum, t) => sum + t.points, 0);
-        console.log(`[useJiraQuery] Setting currentSprint: ${data.tickets.length} tickets, ${totalPts} points`);
-
         setCurrentSprint({
           id: data.sprint.id,
           name: data.sprint.name,

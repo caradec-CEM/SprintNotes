@@ -154,8 +154,7 @@ export function calculateStatusDuration(
   // Debug: Collect all unique status names for this issue
   const statusNames = new Set<string>();
 
-  // Enable detailed debug logging for specific ticket
-  const enableDebug = issueKey === 'CP-3189';
+  const enableDebug = false;
 
   // Track all status transitions
   for (const history of sortedHistories) {
@@ -186,11 +185,6 @@ export function calculateStatusDuration(
     }
   }
 
-  // Debug logging for first few tickets to see what statuses exist
-  if (issueKey && Math.random() < 0.1) { // Log ~10% of tickets to avoid spam
-    console.log(`[${issueKey}] Status names found:`, Array.from(statusNames).sort());
-    console.log(`[${issueKey}] Looking for:`, statusArray);
-  }
 
   // Still in status - calculate to now
   if (currentlyInStatus && lastEntryTime) {
