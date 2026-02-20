@@ -126,30 +126,38 @@ export function IndividualTrends({ engineerId }: IndividualTrendsProps) {
               <Legend />
               <Line
                 type="monotone"
+                dataKey="total"
+                stroke={cc.primary}
+                strokeWidth={2}
+                dot={{ fill: cc.primary, strokeWidth: 2, r: 4 }}
+                name="Total Points"
+              />
+              <Line
+                type="monotone"
                 dataKey="devPts"
                 stroke={cc.dev}
-                strokeWidth={2}
-                dot={{ fill: cc.dev, strokeWidth: 2 }}
+                strokeWidth={1}
+                dot={{ fill: cc.dev, strokeWidth: 1, r: 2 }}
                 name="Dev Points"
               />
               <Line
                 type="monotone"
                 dataKey="reviewPts"
-                stroke={cc.primary}
-                strokeWidth={2}
+                stroke={cc.review}
+                strokeWidth={1}
                 strokeDasharray="5 5"
-                dot={{ fill: cc.primary, strokeWidth: 2 }}
+                dot={{ fill: cc.review, strokeWidth: 1, r: 2 }}
                 name="Review Points"
               />
               {showNormalized && (
                 <Line
                   type="monotone"
                   dataKey="normalizedTotal"
-                  stroke={cc.review}
+                  stroke={cc.dev}
                   strokeWidth={2}
-                  strokeDasharray="3 6"
-                  dot={{ fill: cc.review, strokeWidth: 2, r: 3 }}
-                  name="Adjusted Total"
+                  strokeDasharray="5 5"
+                  dot={{ fill: cc.dev, strokeWidth: 2, r: 3 }}
+                  name="Adjusted"
                   connectNulls
                 />
               )}
