@@ -14,12 +14,13 @@ const jsonFileStorage: StateStorage = {
       return null;
     }
   },
-  setItem: async (_name: string, value: string) => {
+  setItem: async (_name: string, value: unknown) => {
     try {
+      const body = typeof value === 'string' ? value : JSON.stringify(value);
       await fetch('/api/notes', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
-        body: value,
+        body,
       });
     } catch {
       // API unreachable (e.g. production build) — silently ignore
