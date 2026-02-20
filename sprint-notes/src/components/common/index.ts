@@ -3,3 +3,4 @@ export { TypeBadge, PriorityBadge, RoleBadge } from './Badge';
 export { TicketLink } from './TicketLink';
 export { SprintSelector } from './SprintSelector';
 export { DevReviewRatioBar } from './DevReviewRatioBar';
+export { Tooltip } from './Tooltip';

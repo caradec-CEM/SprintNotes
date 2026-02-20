@@ -5,6 +5,7 @@
   padding: var(--space-md) var(--space-lg);
   background: var(--color-bg-card);
   border-bottom: 1px solid var(--color-border);
+  box-shadow: 0 1px 3px rgba(9, 30, 66, 0.04);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -48,16 +49,22 @@
   height: 32px;
   padding: 0;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   background: var(--color-bg);
   cursor: pointer;
   font-size: 16px;
   line-height: 1;
-  transition: background-color 0.15s;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .header__theme-toggle:hover {
   background: var(--color-bg-hover);
+  border-color: var(--color-text-subtle);
+}
+
+.header__theme-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 @keyframes pulse {
