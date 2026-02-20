@@ -115,6 +115,7 @@ export function useSprintData() {
           id: data.sprint.id,
           name: data.sprint.name,
           date: data.sprint.endDate || new Date().toISOString().split('T')[0],
+          startDate: data.sprint.startDate,
           tickets: data.tickets,
         });
 

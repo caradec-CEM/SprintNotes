@@ -54,6 +54,7 @@ export interface SprintData {
   id: string;
   name: string;
   date: string;         // End date
+  startDate?: string;
   tickets: Ticket[];
 }
 

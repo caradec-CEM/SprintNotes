@@ -237,3 +237,20 @@ export function extractPointChange(
 
   return undefined;
 }
+
+/** Format a sprint date range compactly: "Jan 6 – Jan 17, 2025" */
+export function formatSprintDateRange(startDate: string, endDate: string): string {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  const shortDate: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
+  const sameYear = start.getFullYear() === end.getFullYear();
+
+  const startStr = sameYear
+    ? start.toLocaleDateString('en-US', shortDate)
+    : start.toLocaleDateString('en-US', { ...shortDate, year: 'numeric' });
+
+  const endStr = end.toLocaleDateString('en-US', { ...shortDate, year: 'numeric' });
+
+  return `${startStr} \u2013 ${endStr}`;
+}

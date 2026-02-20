@@ -5,6 +5,7 @@ import { SummaryTable } from './SummaryTable';
 import { TeamTrends } from './TeamTrends';
 import { SprintCapacityEditor } from './SprintCapacityEditor';
 import { LoadingSpinner } from '../common';
+import { formatSprintDateRange } from '../../utils/dateUtils';
 import './TeamOverview.css';
 
 export function TeamOverview() {
@@ -46,7 +47,14 @@ export function TeamOverview() {
     <div className="team-overview">
       {/* Sprint Header */}
       <div className="team-overview__header">
-        <h2 className="team-overview__title">{currentSprint.name}</h2>
+        <div className="team-overview__header-left">
+          <h2 className="team-overview__title">{currentSprint.name}</h2>
+          {currentSprint.startDate && currentSprint.date && (
+            <span className="team-overview__dates">
+              {formatSprintDateRange(currentSprint.startDate, currentSprint.date)}
+            </span>
+          )}
+        </div>
         <div className="team-overview__stats">
           <span className="stat">
             <strong>{totalTickets}</strong> tickets
