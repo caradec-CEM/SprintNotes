@@ -249,11 +249,23 @@ export async function fetchSprints(
 }
 
 // Fetch issues for a sprint using Search API
-export async function fetchSprintIssues(sprintId: string): Promise<Ticket[]> {
+// sprintEndDate filters out tickets resolved after the sprint ended (carry-overs completed later)
+export async function fetchSprintIssues(sprintId: string, sprintEndDate?: string): Promise<Ticket[]> {
   const fields = JIRA_CONFIG.issueFields;
 
+  // Build resolution date filter: only include tickets resolved before sprint end + 1 day buffer
+  // This prevents counting carry-over tickets that were completed in a later sprint
+  let resolutionFilter = '';
+  if (sprintEndDate) {
+    // Add 1 day buffer for timezone edge cases
+    const endDate = new Date(sprintEndDate);
+    endDate.setDate(endDate.getDate() + 1);
+    const endStr = endDate.toISOString().split('T')[0];
+    resolutionFilter = ` AND resolutiondate <= "${endStr}"`;
+  }
+
   // Fetch CP tickets (completed, not carried over)
-  const cpJql = `project = CP AND sprint = ${sprintId} AND sprint NOT IN openSprints() AND statusCategory = Done`;
+  const cpJql = `project = CP AND sprint = ${sprintId} AND statusCategory = Done${resolutionFilter}`;
   const cpParams = new URLSearchParams({
     jql: cpJql,
     fields: fields.join(','),
@@ -264,7 +276,7 @@ export async function fetchSprintIssues(sprintId: string): Promise<Ticket[]> {
   const cpData = await jiraFetch<{ issues: JiraIssueRaw[]; total: number }>(cpEndpoint);
 
   // Fetch IT tickets (completed, not carried over, excluding canceled)
-  const itJql = `project = IT AND sprint = ${sprintId} AND sprint NOT IN openSprints() AND statusCategory = Done AND status != "IT - Canceled"`;
+  const itJql = `project = IT AND sprint = ${sprintId} AND statusCategory = Done AND status != "IT - Canceled"${resolutionFilter}`;
   const itParams = new URLSearchParams({
     jql: itJql,
     fields: fields.join(','),
@@ -277,7 +289,6 @@ export async function fetchSprintIssues(sprintId: string): Promise<Ticket[]> {
   // Combine and transform
   const allIssues = [...cpData.issues, ...itData.issues];
   const tickets = allIssues.map(raw => transformIssue(raw, sprintId));
-
 
   return tickets;
 }
@@ -300,15 +311,13 @@ export async function fetchSprintData(sprintId: string): Promise<{
   tickets: Ticket[];
 } | null> {
   try {
-    const [sprint, tickets] = await Promise.all([
-      fetchSprintById(sprintId),
-      fetchSprintIssues(sprintId),
-    ]);
-
+    // Fetch sprint first to get end date for filtering
+    const sprint = await fetchSprintById(sprintId);
     if (!sprint) {
       throw new Error(`Sprint ${sprintId} not found`);
     }
 
+    const tickets = await fetchSprintIssues(sprintId, sprint.endDate);
     return { sprint, tickets };
   } catch (error) {
     console.error('Failed to fetch sprint data:', error);

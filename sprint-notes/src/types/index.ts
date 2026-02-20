@@ -169,6 +169,7 @@ export interface JiraIssueRaw {
     customfield_10124: Array<{ accountId: string; displayName: string }> | null;  // Developer (multiple)
     customfield_10058: { accountId: string; displayName: string } | Array<{ accountId: string; displayName: string }> | null;  // Reviewer (can be single or multiple)
     customfield_10020: Array<{ id: number; name: string }> | null;  // Sprint
+    resolutiondate: string | null;
   };
   changelog?: JiraChangelog;
 }

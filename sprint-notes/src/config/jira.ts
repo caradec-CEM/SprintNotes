@@ -17,6 +17,7 @@ export const JIRA_CONFIG = {
     'priority',
     'assignee',
     'labels',
+    'resolutiondate',
     'customfield_10031',  // Story Points
     'customfield_10124',  // Developer
     'customfield_10058',  // Reviewer

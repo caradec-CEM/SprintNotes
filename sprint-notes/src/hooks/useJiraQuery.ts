@@ -36,7 +36,7 @@ export function useSprints() {
       if (history.sprints.some(h => h.id === sprint.id)) continue;
 
       try {
-        const tickets = await fetchSprintIssues(sprint.id);
+        const tickets = await fetchSprintIssues(sprint.id, sprint.endDate);
         const summary = createSprintSummary(
           sprint.id,
           sprint.name,
