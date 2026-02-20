@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
 import { useHistoryStore } from '../stores/historyStore';
 import { useSprintStore } from '../stores/sprintStore';
+import { useNotesStore } from '../stores/notesStore';
 import { TEAM_MEMBERS } from '../config/team';
+import { computeTeamCapacityPercent, computeNormalizedVelocity } from '../utils/capacityUtils';
 
 export interface TeamVelocityDataPoint {
   sprintId: string;
@@ -12,6 +14,8 @@ export interface TeamVelocityDataPoint {
   devCount: number;
   reviewCount: number;
   itCount: number;
+  capacityPercent: number;
+  normalizedTotal: number | null;
 }
 
 export interface TeamTrendData {
@@ -31,6 +35,8 @@ function getSprintNum(name: string): number {
 export function useTeamTrends(sprintCount = 6): TeamTrendData {
   const history = useHistoryStore((state) => state.history);
   const selectedSprintId = useSprintStore((state) => state.selectedSprintId);
+  const getSprintCapacity = useNotesStore((state) => state.getSprintCapacity);
+  const getEngineerTimeOff = useNotesStore((state) => state.getEngineerTimeOff);
 
   return useMemo(() => {
     // Find the selected sprint in history
@@ -66,6 +72,14 @@ export function useTeamTrends(sprintCount = 6): TeamTrendData {
       const total = sprint.totalPoints ?? reviewPts;  // Fallback for old data
       const ticketCount = sprint.totalTickets ?? reviewCount;
 
+      // Capacity data from notesStore
+      const sprintCapacity = getSprintCapacity(sprint.id);
+      const engineerTimeOffs = TEAM_MEMBERS.map((m) =>
+        getEngineerTimeOff(sprint.id, m.id)
+      );
+      const capacityPercent = computeTeamCapacityPercent(engineerTimeOffs, sprintCapacity.effectiveSprintDays);
+      const normalizedTotal = computeNormalizedVelocity(total, capacityPercent);
+
       return {
         sprintId: sprint.id,
         sprintName: sprint.name.replace('Engineering Sprint ', 'S'),
@@ -75,6 +89,8 @@ export function useTeamTrends(sprintCount = 6): TeamTrendData {
         devCount: ticketCount,  // Use actual ticket count for team display
         reviewCount,
         itCount,
+        capacityPercent,
+        normalizedTotal: normalizedTotal !== null ? Math.round(normalizedTotal) : null,
       };
     });
 
@@ -89,7 +105,7 @@ export function useTeamTrends(sprintCount = 6): TeamTrendData {
         previous,
       },
     };
-  }, [sprintCount, history.sprints, selectedSprintId]);
+  }, [sprintCount, history.sprints, selectedSprintId, getSprintCapacity, getEngineerTimeOff]);
 }
 
 // Helper to calculate delta between two team metrics

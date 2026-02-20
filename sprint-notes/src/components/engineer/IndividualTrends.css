@@ -105,6 +105,30 @@
   border-radius: var(--radius-md);
 }
 
+.individual-trends__chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+}
+
+.individual-trends__chart-header .individual-trends__subtitle {
+  margin-bottom: 0;
+}
+
+.individual-trends__toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+  cursor: pointer;
+}
+
+.individual-trends__toggle input {
+  cursor: pointer;
+}
+
 @media print {
   .individual-trends__charts {
     display: none;

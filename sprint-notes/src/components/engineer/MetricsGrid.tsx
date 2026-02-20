@@ -1,10 +1,13 @@
 import type { EngineerMetrics } from '../../types';
 import { DevReviewRatioBar } from '../common';
 import { formatDuration } from '../../utils/dateUtils';
+import { computePtsPerDay } from '../../utils/capacityUtils';
 import './MetricsGrid.css';
 
 interface MetricsGridProps {
   metrics: EngineerMetrics;
+  workingDays: number;
+  effectiveSprintDays: number;
 }
 
 interface MetricCardProps {
@@ -26,7 +29,13 @@ function MetricCard({ label, value, suffix = '', variant = 'default' }: MetricCa
   );
 }
 
-export function MetricsGrid({ metrics }: MetricsGridProps) {
+export function MetricsGrid({ metrics, workingDays, effectiveSprintDays }: MetricsGridProps) {
+  const totalPts = metrics.devPts + metrics.reviewPts;
+  const ptsPerDay = computePtsPerDay(totalPts, workingDays);
+  const capacityPct = effectiveSprintDays > 0
+    ? Math.round((workingDays / effectiveSprintDays) * 100)
+    : 0;
+
   return (
     <div className="metrics-grid-container">
       <div className="metrics-grid">
@@ -59,9 +68,19 @@ export function MetricsGrid({ metrics }: MetricsGridProps) {
         />
         <MetricCard
           label="Total Pts"
-          value={metrics.devPts + metrics.reviewPts}
+          value={totalPts}
           suffix="pts"
           variant="muted"
+        />
+        <MetricCard
+          label="Pts/Day"
+          value={ptsPerDay !== null ? ptsPerDay.toFixed(1) : '-'}
+          variant="primary"
+        />
+        <MetricCard
+          label="Capacity"
+          value={`${capacityPct}%`}
+          variant={capacityPct >= 90 ? 'default' : capacityPct >= 70 ? 'warning' : 'warning'}
         />
         {metrics.avgInProgressHours !== undefined && (
           <MetricCard

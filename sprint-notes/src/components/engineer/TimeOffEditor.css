@@ -39,6 +39,12 @@
   color: var(--color-text-subtle);
 }
 
+.time-off-editor__note {
+  font-size: var(--font-size-xs);
+  color: var(--color-tint-yellow-text);
+  font-style: italic;
+}
+
 @media print {
   .time-off-editor__input {
     border: none;

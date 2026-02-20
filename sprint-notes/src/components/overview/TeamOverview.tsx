@@ -3,6 +3,7 @@ import { Section } from '../layout';
 import { LoadBalanceChart } from './LoadBalanceChart';
 import { SummaryTable } from './SummaryTable';
 import { TeamTrends } from './TeamTrends';
+import { SprintCapacityEditor } from './SprintCapacityEditor';
 import { LoadingSpinner } from '../common';
 import './TeamOverview.css';
 
@@ -55,6 +56,7 @@ export function TeamOverview() {
           <span className="stat">
             <strong>{totalPoints}</strong> points
           </span>
+          <SprintCapacityEditor />
         </div>
       </div>
 

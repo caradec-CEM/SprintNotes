@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
 import { useHistoryStore } from '../stores/historyStore';
 import { useSprintStore } from '../stores/sprintStore';
+import { useNotesStore } from '../stores/notesStore';
 import type { TrendData, VelocityDataPoint, EngineerMetrics } from '../types';
+import { computeNormalizedVelocity } from '../utils/capacityUtils';
 
 // Extract sprint number from name (e.g., "Engineering Sprint 54" -> 54)
 function getSprintNum(name: string): number {
@@ -12,6 +14,8 @@ function getSprintNum(name: string): number {
 export function useIndividualTrends(engineerId: string, sprintCount = 5): TrendData {
   const history = useHistoryStore((state) => state.history);
   const selectedSprintId = useSprintStore((state) => state.selectedSprintId);
+  const getSprintCapacity = useNotesStore((state) => state.getSprintCapacity);
+  const getEngineerTimeOff = useNotesStore((state) => state.getEngineerTimeOff);
 
   return useMemo(() => {
     // Find the selected sprint in history
@@ -29,12 +33,24 @@ export function useIndividualTrends(engineerId: string, sprintCount = 5): TrendD
         devPts: 0,
         reviewPts: 0,
       };
+      const total = metrics.devPts + metrics.reviewPts;
+
+      // Capacity data
+      const sprintCapacity = getSprintCapacity(sprint.id);
+      const engineerTimeOff = getEngineerTimeOff(sprint.id, engineerId);
+      const capacityPercent = sprintCapacity.effectiveSprintDays > 0
+        ? Math.round((engineerTimeOff.workingDays / sprintCapacity.effectiveSprintDays) * 100)
+        : 0;
+      const normalizedTotal = computeNormalizedVelocity(total, capacityPercent);
+
       return {
         sprintId: sprint.id,
         sprintName: sprint.name.replace('Engineering Sprint ', 'S'),
-        total: metrics.devPts + metrics.reviewPts,
+        total,
         devPts: metrics.devPts,
         reviewPts: metrics.reviewPts,
+        capacityPercent,
+        normalizedTotal: normalizedTotal !== null ? Math.round(normalizedTotal) : null,
       };
     });
 
@@ -49,7 +65,7 @@ export function useIndividualTrends(engineerId: string, sprintCount = 5): TrendD
         previous: previousMetrics,
       },
     };
-  }, [engineerId, sprintCount, history.sprints, selectedSprintId]);
+  }, [engineerId, sprintCount, history.sprints, selectedSprintId, getSprintCapacity, getEngineerTimeOff]);
 }
 
 // Helper to calculate delta between two metrics

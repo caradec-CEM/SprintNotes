@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   BarChart,
   Bar,
@@ -17,6 +18,7 @@ import './TeamTrends.css';
 export function TeamTrends() {
   const { velocityData, currentVsPrevious } = useTeamTrends(6);
   const cc = useChartColors();
+  const [showNormalized, setShowNormalized] = useState(false);
 
   if (velocityData.length < 2) {
     return (
@@ -30,7 +32,7 @@ export function TeamTrends() {
 
   // Calculate delta for total points
   const totalDelta = calculateTeamDelta(current, previous, 'total');
-  const ticketsDelta = calculateTeamDelta(current, previous, 'devCount');  // devCount holds totalTickets
+  const ticketsDelta = calculateTeamDelta(current, previous, 'devCount');
 
   // Calculate averages
   const avgVelocity = Math.round(
@@ -39,6 +41,9 @@ export function TeamTrends() {
   const avgTickets = Math.round(
     velocityData.reduce((sum, d) => sum + d.devCount, 0) / velocityData.length
   );
+
+  // Check if any sprint has capacity < 100%
+  const hasCapacityVariation = velocityData.some((d) => d.capacityPercent < 100);
 
   return (
     <div className="team-trends">
@@ -69,6 +74,12 @@ export function TeamTrends() {
             <div className="team-trends__metric-label">Avg Velocity</div>
             <div className="team-trends__metric-note">({velocityData.length} sprints)</div>
           </div>
+          {current && (
+            <div className="team-trends__metric">
+              <div className="team-trends__metric-value">{current.capacityPercent}%</div>
+              <div className="team-trends__metric-label">Capacity</div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -76,7 +87,19 @@ export function TeamTrends() {
       <div className="team-trends__charts">
         {/* Velocity Line Chart */}
         <div className="team-trends__chart">
-          <h4 className="team-trends__subtitle">Team Velocity</h4>
+          <div className="team-trends__chart-header">
+            <h4 className="team-trends__subtitle">Team Velocity</h4>
+            {hasCapacityVariation && (
+              <label className="team-trends__toggle">
+                <input
+                  type="checkbox"
+                  checked={showNormalized}
+                  onChange={(e) => setShowNormalized(e.target.checked)}
+                />
+                <span>Show adjusted</span>
+              </label>
+            )}
+          </div>
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={velocityData}>
               <CartesianGrid strokeDasharray="3 3" stroke={cc.grid} />
@@ -92,7 +115,17 @@ export function TeamTrends() {
                   border: `1px solid ${cc.tooltipBorder}`,
                   borderRadius: '4px',
                 }}
-                formatter={(value) => [`${value} pts`, 'Total Points']}
+                formatter={(value: number, name: string) => {
+                  if (name === 'Adjusted') return [`${value} pts`, 'Adjusted (100% capacity)'];
+                  return [`${value} pts`, 'Total Points'];
+                }}
+                labelFormatter={(label, payload) => {
+                  const item = payload?.[0]?.payload;
+                  if (item && item.capacityPercent < 100) {
+                    return `${label} (${item.capacityPercent}% capacity)`;
+                  }
+                  return label;
+                }}
               />
               <ReferenceLine
                 y={avgVelocity}
@@ -108,6 +141,18 @@ export function TeamTrends() {
                 dot={{ fill: cc.primary, strokeWidth: 2, r: 4 }}
                 name="Total Points"
               />
+              {showNormalized && (
+                <Line
+                  type="monotone"
+                  dataKey="normalizedTotal"
+                  stroke={cc.dev}
+                  strokeWidth={2}
+                  strokeDasharray="5 5"
+                  dot={{ fill: cc.dev, strokeWidth: 2, r: 3 }}
+                  name="Adjusted"
+                  connectNulls
+                />
+              )}
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -130,7 +175,14 @@ export function TeamTrends() {
                   border: `1px solid ${cc.tooltipBorder}`,
                   borderRadius: '4px',
                 }}
-                formatter={(value) => [`${value} tickets`, 'Completed']}
+                formatter={(value: number) => [`${value} tickets`, 'Completed']}
+                labelFormatter={(label, payload) => {
+                  const item = payload?.[0]?.payload;
+                  if (item && item.capacityPercent < 100) {
+                    return `${label} (${item.capacityPercent}% capacity)`;
+                  }
+                  return label;
+                }}
               />
               <ReferenceLine
                 y={avgTickets}

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   BarChart,
   Bar,
@@ -21,6 +22,7 @@ interface IndividualTrendsProps {
 export function IndividualTrends({ engineerId }: IndividualTrendsProps) {
   const { velocityData, currentVsPrevious } = useIndividualTrends(engineerId, 6);
   const cc = useChartColors();
+  const [showNormalized, setShowNormalized] = useState(false);
 
   if (velocityData.length < 2) {
     return (
@@ -46,6 +48,9 @@ export function IndividualTrends({ engineerId }: IndividualTrendsProps) {
     delta: totalDeltaValue,
     direction: totalDirection,
   };
+
+  // Check if any sprint has capacity < 100%
+  const hasCapacityVariation = velocityData.some((d) => d.capacityPercent < 100);
 
   return (
     <div className="individual-trends">
@@ -81,7 +86,19 @@ export function IndividualTrends({ engineerId }: IndividualTrendsProps) {
       <div className="individual-trends__charts">
         {/* Velocity Line Chart */}
         <div className="individual-trends__chart">
-          <h4 className="individual-trends__subtitle">Velocity Trend</h4>
+          <div className="individual-trends__chart-header">
+            <h4 className="individual-trends__subtitle">Velocity Trend</h4>
+            {hasCapacityVariation && (
+              <label className="individual-trends__toggle">
+                <input
+                  type="checkbox"
+                  checked={showNormalized}
+                  onChange={(e) => setShowNormalized(e.target.checked)}
+                />
+                <span>Show adjusted</span>
+              </label>
+            )}
+          </div>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={velocityData}>
               <CartesianGrid strokeDasharray="3 3" stroke={cc.grid} />
@@ -96,6 +113,13 @@ export function IndividualTrends({ engineerId }: IndividualTrendsProps) {
                   backgroundColor: cc.tooltipBg,
                   border: `1px solid ${cc.tooltipBorder}`,
                   borderRadius: '4px',
+                }}
+                labelFormatter={(label, payload) => {
+                  const item = payload?.[0]?.payload;
+                  if (item && item.capacityPercent < 100) {
+                    return `${label} (${item.capacityPercent}% capacity)`;
+                  }
+                  return label;
                 }}
               />
               <Legend />
@@ -116,6 +140,18 @@ export function IndividualTrends({ engineerId }: IndividualTrendsProps) {
                 dot={{ fill: cc.primary, strokeWidth: 2 }}
                 name="Review Points"
               />
+              {showNormalized && (
+                <Line
+                  type="monotone"
+                  dataKey="normalizedTotal"
+                  stroke={cc.review}
+                  strokeWidth={2}
+                  strokeDasharray="3 6"
+                  dot={{ fill: cc.review, strokeWidth: 2, r: 3 }}
+                  name="Adjusted Total"
+                  connectNulls
+                />
+              )}
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -137,6 +173,13 @@ export function IndividualTrends({ engineerId }: IndividualTrendsProps) {
                   backgroundColor: cc.tooltipBg,
                   border: `1px solid ${cc.tooltipBorder}`,
                   borderRadius: '4px',
+                }}
+                labelFormatter={(label, payload) => {
+                  const item = payload?.[0]?.payload;
+                  if (item && item.capacityPercent < 100) {
+                    return `${label} (${item.capacityPercent}% capacity)`;
+                  }
+                  return label;
                 }}
               />
               <Legend />

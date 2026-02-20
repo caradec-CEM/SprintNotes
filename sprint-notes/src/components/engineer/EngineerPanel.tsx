@@ -2,6 +2,7 @@ import { findMemberById } from '../../config/team';
 import { useEngineerData } from '../../hooks/useEngineerData';
 import { useSprintStore } from '../../stores/sprintStore';
 import { useNotesStore } from '../../stores/notesStore';
+import { DEFAULT_SPRINT_CAPACITY, DEFAULT_TIME_OFF } from '../../utils/capacityUtils';
 import { Section } from '../layout';
 import { MetricsGrid } from './MetricsGrid';
 import { TicketTable } from './TicketTable';
@@ -20,12 +21,14 @@ export function EngineerPanel({ engineerId }: EngineerPanelProps) {
   const { allTickets, metrics, notes } = useEngineerData(engineerId);
   const currentSprint = useSprintStore((state) => state.currentSprint);
   const getEngineerTimeOff = useNotesStore((state) => state.getEngineerTimeOff);
+  const getSprintCapacity = useNotesStore((state) => state.getSprintCapacity);
 
   if (!member) {
     return <div className="engineer-panel__error">Engineer not found</div>;
   }
 
-  const timeOff = currentSprint ? getEngineerTimeOff(currentSprint.id, engineerId) : { ptoDays: 0, workingDays: 10 };
+  const timeOff = currentSprint ? getEngineerTimeOff(currentSprint.id, engineerId) : DEFAULT_TIME_OFF;
+  const capacity = currentSprint ? getSprintCapacity(currentSprint.id) : DEFAULT_SPRINT_CAPACITY;
 
   return (
     <div className="engineer-panel">
@@ -54,7 +57,7 @@ export function EngineerPanel({ engineerId }: EngineerPanelProps) {
       <div className="engineer-panel__content">
         {/* Metrics */}
         <Section title="Sprint Metrics">
-          <MetricsGrid metrics={metrics} />
+          <MetricsGrid metrics={metrics} workingDays={timeOff.workingDays} effectiveSprintDays={capacity.effectiveSprintDays} />
         </Section>
 
         {/* Tickets */}

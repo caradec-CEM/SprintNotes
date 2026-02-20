@@ -84,10 +84,17 @@ export interface SprintHistory {
   sprints: SprintSummary[];
 }
 
+// Sprint-level capacity settings (team holidays, sprint length variations)
+export interface SprintCapacity {
+  defaultWorkingDays: number;   // Standard sprint length (default: 10)
+  teamHolidays: number;         // Days the whole team is off (holidays, company days)
+  effectiveSprintDays: number;  // defaultWorkingDays - teamHolidays
+}
+
 // Engineer time off tracking
 export interface EngineerTimeOff {
   ptoDays: number;      // Days of PTO/vacation
-  workingDays: number;  // 10 - ptoDays
+  workingDays: number;  // effectiveSprintDays - ptoDays
 }
 
 // Notes and action items
@@ -115,6 +122,7 @@ export interface SprintNotes {
   lastModified: number;
   engineers: Record<string, EngineerNotes>;
   timeOff?: Record<string, EngineerTimeOff>;  // engineerId -> timeOff
+  capacity?: SprintCapacity;                   // sprint-level capacity settings
 }
 
 // JIRA Changelog types
@@ -181,6 +189,8 @@ export interface VelocityDataPoint {
   total: number;
   devPts: number;
   reviewPts: number;
+  capacityPercent: number;
+  normalizedTotal: number | null;
 }
 
 export interface TrendData {

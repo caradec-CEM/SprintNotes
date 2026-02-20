@@ -30,7 +30,7 @@
 
 .team-trends__comparison-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--space-md);
 }
 
@@ -93,12 +93,36 @@
   border-radius: var(--radius-md);
 }
 
+.team-trends__chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+}
+
+.team-trends__chart-header .team-trends__subtitle {
+  margin-bottom: 0;
+}
+
+.team-trends__toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+  cursor: pointer;
+}
+
+.team-trends__toggle input {
+  cursor: pointer;
+}
+
 @media print {
   .team-trends__charts {
     display: none;
   }
 
   .team-trends__comparison-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
   }
 }

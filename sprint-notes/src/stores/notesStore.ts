@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, type StateStorage } from 'zustand/middleware';
-import type { DiscussionNotes, ActionItem, EngineerNotes, SprintNotes, EngineerTimeOff } from '../types';
+import type { DiscussionNotes, ActionItem, EngineerNotes, SprintNotes, EngineerTimeOff, SprintCapacity } from '../types';
+import { DEFAULT_SPRINT_CAPACITY, DEFAULT_TIME_OFF, computeEffectiveSprintDays, computeEngineerWorkingDays } from '../utils/capacityUtils';
 
 // Custom storage adapter that persists to data/notes.json via the Vite dev server API
 const jsonFileStorage: StateStorage = {
@@ -55,9 +56,6 @@ function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
-// Default time off values
-const DEFAULT_TIME_OFF: EngineerTimeOff = { ptoDays: 0, workingDays: 10 };
-
 interface NotesState {
   // Notes keyed by sprint ID
   sprintNotes: Record<string, SprintNotes>;
@@ -83,6 +81,10 @@ interface NotesState {
   // Time off tracking
   getEngineerTimeOff: (sprintId: string, engineerId: string) => EngineerTimeOff;
   updateEngineerTimeOff: (sprintId: string, engineerId: string, ptoDays: number) => void;
+
+  // Sprint capacity
+  getSprintCapacity: (sprintId: string) => SprintCapacity;
+  updateSprintCapacity: (sprintId: string, updates: Partial<Pick<SprintCapacity, 'defaultWorkingDays' | 'teamHolidays'>>) => void;
 }
 
 export const useNotesStore = create<NotesState>()(
@@ -256,7 +258,8 @@ export const useNotesStore = create<NotesState>()(
         const { sprintNotes } = get();
         const sprint = sprintNotes[sprintId];
         if (!sprint || !sprint.timeOff || !sprint.timeOff[engineerId]) {
-          return DEFAULT_TIME_OFF;
+          const capacity = sprint?.capacity ?? DEFAULT_SPRINT_CAPACITY;
+          return { ptoDays: 0, workingDays: capacity.effectiveSprintDays };
         }
         return sprint.timeOff[engineerId];
       },
@@ -269,7 +272,8 @@ export const useNotesStore = create<NotesState>()(
             engineers: {},
           };
 
-          const workingDays = Math.max(0, 10 - ptoDays);
+          const capacity = existingSprint.capacity ?? DEFAULT_SPRINT_CAPACITY;
+          const workingDays = computeEngineerWorkingDays(capacity.effectiveSprintDays, ptoDays);
 
           return {
             sprintNotes: {
@@ -284,6 +288,49 @@ export const useNotesStore = create<NotesState>()(
                     workingDays,
                   },
                 },
+              },
+            },
+          };
+        }),
+
+      getSprintCapacity: (sprintId) => {
+        const { sprintNotes } = get();
+        const sprint = sprintNotes[sprintId];
+        return sprint?.capacity ?? DEFAULT_SPRINT_CAPACITY;
+      },
+
+      updateSprintCapacity: (sprintId, updates) =>
+        set((state) => {
+          const existingSprint = state.sprintNotes[sprintId] || {
+            sprintId,
+            lastModified: Date.now(),
+            engineers: {},
+          };
+
+          const prev = existingSprint.capacity ?? DEFAULT_SPRINT_CAPACITY;
+          const defaultWorkingDays = updates.defaultWorkingDays ?? prev.defaultWorkingDays;
+          const teamHolidays = updates.teamHolidays ?? prev.teamHolidays;
+          const effectiveSprintDays = computeEffectiveSprintDays(defaultWorkingDays, teamHolidays);
+
+          // Recompute all engineer workingDays for this sprint
+          const updatedTimeOff: Record<string, EngineerTimeOff> = {};
+          if (existingSprint.timeOff) {
+            for (const [engId, to] of Object.entries(existingSprint.timeOff)) {
+              updatedTimeOff[engId] = {
+                ptoDays: to.ptoDays,
+                workingDays: computeEngineerWorkingDays(effectiveSprintDays, to.ptoDays),
+              };
+            }
+          }
+
+          return {
+            sprintNotes: {
+              ...state.sprintNotes,
+              [sprintId]: {
+                ...existingSprint,
+                lastModified: Date.now(),
+                capacity: { defaultWorkingDays, teamHolidays, effectiveSprintDays },
+                timeOff: Object.keys(updatedTimeOff).length > 0 ? updatedTimeOff : existingSprint.timeOff,
               },
             },
           };

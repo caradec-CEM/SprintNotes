@@ -79,14 +79,48 @@
   text-align: center;
 }
 
-.summary-table__pto-badge {
+.summary-table__pto-input {
+  width: 48px;
+  padding: 2px 4px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  text-align: center;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.summary-table__pto-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.2);
+}
+
+.summary-table__capacity {
+  text-align: center;
+}
+
+.summary-table__capacity-badge {
   display: inline-block;
-  background: var(--color-tint-yellow-bg);
-  color: var(--color-tint-yellow-text);
   font-size: var(--font-size-xs);
   font-weight: 600;
   padding: 2px 6px;
   border-radius: var(--radius-sm);
+}
+
+.summary-table__capacity-badge--good {
+  background: var(--color-tint-green-bg);
+  color: var(--color-tint-green-text);
+}
+
+.summary-table__capacity-badge--warn {
+  background: var(--color-tint-yellow-bg);
+  color: var(--color-tint-yellow-text);
+}
+
+.summary-table__capacity-badge--low {
+  background: var(--color-tint-red-bg);
+  color: var(--color-tint-red-text);
 }
 
 .summary-table__pts-day {
