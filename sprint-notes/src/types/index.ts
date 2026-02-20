@@ -38,6 +38,7 @@ export interface Ticket {
   inProgressDuration?: StatusDuration;
   inReviewDuration?: StatusDuration;
   pointChange?: PointChange;
+  changelog?: ChangelogEntry[];
   isCarryOver?: boolean;
 }
 
@@ -162,6 +163,13 @@ export interface StatusDuration {
 export interface PointChange {
   from: number;
   to: number;
+}
+
+export interface ChangelogEntry {
+  timestamp: string;          // ISO date
+  field: string;              // "status", "Story Points", "priority", etc.
+  from: string | null;        // Human-readable previous value
+  to: string | null;          // Human-readable new value
 }
 
 // Raw JIRA API response types

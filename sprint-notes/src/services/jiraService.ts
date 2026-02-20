@@ -9,6 +9,7 @@ import type {
   TicketType,
   Priority,
   Project,
+  ChangelogEntry,
   JiraIssueRaw,
   JiraSprintRaw,
 } from '../types';
@@ -64,6 +65,37 @@ async function jiraFetch<T>(
   }
 
   return response.json();
+}
+
+// Fields worth showing in the changelog UI
+const CHANGELOG_FIELDS = new Set([
+  'status', 'Story Points', 'priority', 'assignee',
+  'Developer', 'Reviewer', 'labels',
+]);
+
+// Extract curated changelog entries from raw JIRA changelog
+function extractChangelog(changelog?: { histories: Array<{ created: string; items: Array<{ field: string; fieldtype: string; fromString: string | null; toString: string | null }> }> }): ChangelogEntry[] | undefined {
+  if (!changelog?.histories?.length) return undefined;
+
+  const entries: ChangelogEntry[] = [];
+  for (const history of changelog.histories) {
+    for (const item of history.items) {
+      if (CHANGELOG_FIELDS.has(item.field)) {
+        entries.push({
+          timestamp: history.created,
+          field: item.field,
+          from: item.fromString,
+          to: item.toString,
+        });
+      }
+    }
+  }
+
+  if (entries.length === 0) return undefined;
+
+  // Sort chronologically
+  entries.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+  return entries;
 }
 
 // Transform raw JIRA issue to app format
@@ -167,6 +199,9 @@ function transformIssue(raw: JiraIssueRaw, sprintId: string): Ticket {
   // Extract point changes from changelog
   const pointChange = extractPointChange(raw.changelog, raw.key);
 
+  // Extract curated changelog entries
+  const changelog = extractChangelog(raw.changelog);
+
   // Detect carry-over: ticket was in a previous sprint if any sprint ID < current
   const sprintField = raw.fields.customfield_10020;
   const currentSprintId = parseInt(sprintId);
@@ -198,6 +233,7 @@ function transformIssue(raw: JiraIssueRaw, sprintId: string): Ticket {
     inProgressDuration,
     inReviewDuration,
     pointChange,
+    changelog,
     isCarryOver,
   };
 }

@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react';
-import type { Ticket } from '../../types';
-import { TypeBadge, PriorityBadge, TicketLink } from '../common';
-import { formatDuration, getDurationClass, formatStatusTooltip } from '../../utils/dateUtils';
+import React, { useState, useMemo, useCallback } from 'react';
+import type { Ticket, StatusSpan, PointChange, ChangelogEntry } from '../../types';
+import { TypeBadge, PriorityBadge, TicketLink, Tooltip } from '../common';
+import { formatDuration, getDurationClass } from '../../utils/dateUtils';
 import { getLabelDisplayName, getPrimaryPlatform } from '../../config/labels';
 import './TicketTable.css';
 
@@ -34,9 +34,122 @@ function getPointsClass(points: number): string {
   return 'points--xsmall';
 }
 
+function formatSpanDate(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    + ', ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+}
+
+function renderDurationTooltip(label: string, totalDays: number, spans: StatusSpan[]) {
+  return (
+    <div>
+      <span className="tooltip-label">{label}</span>{' \u00b7 '}
+      {totalDays} business day{totalDays !== 1 ? 's' : ''}
+      <hr className="tooltip-divider" />
+      {spans.map((s, i) => (
+        <div key={i}>
+          {formatSpanDate(s.entered)} {'\u2192'} {s.exited ? formatSpanDate(s.exited) : 'now'}
+          {' '}({s.days}d)
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function formatChangelogDate(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    + ', ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+}
+
+function formatFieldName(field: string): string {
+  switch (field) {
+    case 'status': return 'Status';
+    case 'Story Points': return 'Points';
+    case 'priority': return 'Priority';
+    case 'assignee': return 'Assignee';
+    case 'Developer': return 'Developer';
+    case 'Reviewer': return 'Reviewer';
+    case 'labels': return 'Labels';
+    default: return field;
+  }
+}
+
+function renderChangelog(entries: ChangelogEntry[], colCount: number) {
+  // Group by field category
+  const statusEntries = entries.filter(e => e.field === 'status');
+  const fieldEntries = entries.filter(e => e.field !== 'status');
+
+  return (
+    <tr className="changelog-row">
+      <td colSpan={colCount}>
+        <div className="changelog-panel">
+          {statusEntries.length > 0 && (
+            <div className="changelog-group">
+              <div className="changelog-group__label">Status Changes</div>
+              <div className="changelog-timeline">
+                {statusEntries.map((entry, i) => (
+                  <div key={i} className="changelog-entry">
+                    <span className="changelog-entry__dot" />
+                    <span className="changelog-entry__date">{formatChangelogDate(entry.timestamp)}</span>
+                    <span className="changelog-entry__value">
+                      {entry.from ?? '—'} <span className="changelog-entry__arrow">{'\u2192'}</span> {entry.to ?? '—'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {fieldEntries.length > 0 && (
+            <div className="changelog-group">
+              <div className="changelog-group__label">Field Changes</div>
+              <div className="changelog-timeline">
+                {fieldEntries.map((entry, i) => (
+                  <div key={i} className="changelog-entry">
+                    <span className="changelog-entry__dot" />
+                    <span className="changelog-entry__date">{formatChangelogDate(entry.timestamp)}</span>
+                    <span className="changelog-entry__field">{formatFieldName(entry.field)}</span>
+                    <span className="changelog-entry__value">
+                      {entry.from ?? '—'} <span className="changelog-entry__arrow">{'\u2192'}</span> {entry.to ?? '—'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {statusEntries.length === 0 && fieldEntries.length === 0 && (
+            <div className="changelog-empty">No changelog entries</div>
+          )}
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+function renderPointChangeTooltip(change: PointChange) {
+  const diff = change.to - change.from;
+  const sign = diff > 0 ? '+' : '';
+  return (
+    <div>
+      <span className="tooltip-label">Points changed</span>
+      <br />
+      <span className="tooltip-change">
+        {change.from} {'\u2192'} {change.to}{'  '}({sign}{diff})
+      </span>
+    </div>
+  );
+}
+
 export function TicketTable({ tickets, engineerId, showDevReviewer = true }: TicketTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>('key');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
+  const [expandedTicket, setExpandedTicket] = useState<string | null>(null);
+
+  const colCount = showDevReviewer ? 10 : 8;
+
+  const toggleExpand = useCallback((ticketKey: string) => {
+    setExpandedTicket(prev => prev === ticketKey ? null : ticketKey);
+  }, []);
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -161,7 +274,11 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
                 </td>
               </tr>
               {platformTickets.map((ticket) => (
-            <tr key={ticket.key}>
+            <React.Fragment key={ticket.key}>
+            <tr
+              className={`${ticket.changelog?.length ? 'ticket-row--expandable' : ''}${expandedTicket === ticket.key ? ' ticket-row--expanded' : ''}`}
+              onClick={ticket.changelog?.length ? () => toggleExpand(ticket.key) : undefined}
+            >
               <td>
                 <TicketLink ticketKey={ticket.key} summary={ticket.summary} />
                 {ticket.isCarryOver && (
@@ -177,44 +294,49 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
               <td>
                 <PriorityBadge priority={ticket.priority} />
               </td>
-              <td
-                className="duration-cell"
-                title={ticket.inProgressDuration?.spans ? formatStatusTooltip(ticket.inProgressDuration.spans) : undefined}
-              >
-                <span className={
-                  isCurrentDeveloper(ticket.developers)
-                    ? getDurationClass(ticket.inProgressDuration?.days, ticket.points)
-                    : 'duration--muted'
+              <td className="duration-cell">
+                <Tooltip content={
+                  ticket.inProgressDuration?.spans
+                    ? renderDurationTooltip('In Progress', ticket.inProgressDuration.days, ticket.inProgressDuration.spans)
+                    : null
                 }>
-                  {formatDuration(ticket.inProgressDuration?.days, ticket.inProgressDuration?.isActive)}
-                </span>
-              </td>
-              <td
-                className="duration-cell"
-                title={ticket.inReviewDuration?.spans ? formatStatusTooltip(ticket.inReviewDuration.spans) : undefined}
-              >
-                <span className={
-                  isCurrentReviewer(ticket.reviewers)
-                    ? getDurationClass(ticket.inReviewDuration?.days, ticket.points)
-                    : 'duration--muted'
-                }>
-                  {formatDuration(ticket.inReviewDuration?.days, ticket.inReviewDuration?.isActive)}
-                </span>
-              </td>
-              <td
-                className={`points-cell ${getPointsClass(ticket.points)}${ticket.pointChange ? ' points-cell--changed' : ''}`}
-                title={ticket.pointChange
-                  ? `Changed from ${ticket.pointChange.from} → ${ticket.pointChange.to}`
-                  : undefined}
-              >
-                {ticket.points || '-'}
-                {ticket.pointChange && (
-                  <span
-                    className={ticket.pointChange.to > ticket.pointChange.from ? 'points-change--up' : 'points-change--down'}
-                  >
-                    {ticket.pointChange.to > ticket.pointChange.from ? '▲' : '▼'}
+                  <span className={
+                    isCurrentDeveloper(ticket.developers)
+                      ? getDurationClass(ticket.inProgressDuration?.days, ticket.points)
+                      : 'duration--muted'
+                  }>
+                    {formatDuration(ticket.inProgressDuration?.days, ticket.inProgressDuration?.isActive)}
                   </span>
-                )}
+                </Tooltip>
+              </td>
+              <td className="duration-cell">
+                <Tooltip content={
+                  ticket.inReviewDuration?.spans
+                    ? renderDurationTooltip('In Review', ticket.inReviewDuration.days, ticket.inReviewDuration.spans)
+                    : null
+                }>
+                  <span className={
+                    isCurrentReviewer(ticket.reviewers)
+                      ? getDurationClass(ticket.inReviewDuration?.days, ticket.points)
+                      : 'duration--muted'
+                  }>
+                    {formatDuration(ticket.inReviewDuration?.days, ticket.inReviewDuration?.isActive)}
+                  </span>
+                </Tooltip>
+              </td>
+              <td className={`points-cell ${getPointsClass(ticket.points)}${ticket.pointChange ? ' points-cell--changed' : ''}`}>
+                <Tooltip content={ticket.pointChange ? renderPointChangeTooltip(ticket.pointChange) : null}>
+                  <span>
+                    {ticket.points || '-'}
+                    {ticket.pointChange && (
+                      <span
+                        className={ticket.pointChange.to > ticket.pointChange.from ? 'points-change--up' : 'points-change--down'}
+                      >
+                        {ticket.pointChange.to > ticket.pointChange.from ? '▲' : '▼'}
+                      </span>
+                    )}
+                  </span>
+                </Tooltip>
               </td>
               {showDevReviewer && (
                 <>
@@ -268,6 +390,8 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
                 ))}
               </td>
             </tr>
+            {expandedTicket === ticket.key && ticket.changelog && renderChangelog(ticket.changelog, colCount)}
+            </React.Fragment>
               ))}
             </>
           ))}
