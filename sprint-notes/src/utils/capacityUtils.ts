@@ -18,10 +18,10 @@ export function computeEngineerWorkingDays(effectiveSprintDays: number, ptoDays:
 
 export function computeTeamCapacityPercent(
   engineers: { workingDays: number }[],
-  effectiveSprintDays: number
+  defaultWorkingDays: number
 ): number {
-  if (effectiveSprintDays <= 0 || engineers.length === 0) return 0;
-  const fullCapacity = effectiveSprintDays * engineers.length;
+  if (defaultWorkingDays <= 0 || engineers.length === 0) return 0;
+  const fullCapacity = defaultWorkingDays * engineers.length;
   const actual = engineers.reduce((sum, e) => sum + e.workingDays, 0);
   return Math.round((actual / fullCapacity) * 100);
 }

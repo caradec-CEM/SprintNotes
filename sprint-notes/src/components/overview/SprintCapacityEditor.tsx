@@ -17,7 +17,7 @@ export function SprintCapacityEditor() {
   const engineerTimeOffs = TEAM_MEMBERS.map((m) =>
     notes?.timeOff?.[m.id] ?? { ...DEFAULT_TIME_OFF, workingDays: capacity.effectiveSprintDays }
   );
-  const teamCapacity = computeTeamCapacityPercent(engineerTimeOffs, capacity.effectiveSprintDays);
+  const teamCapacity = computeTeamCapacityPercent(engineerTimeOffs, capacity.defaultWorkingDays);
 
   const handleSprintDaysChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Math.min(15, Math.max(1, parseInt(e.target.value) || 10));

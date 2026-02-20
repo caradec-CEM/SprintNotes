@@ -23,8 +23,8 @@ export function SummaryTable() {
     const timeOff = notes?.timeOff?.[member.id] ?? { ...DEFAULT_TIME_OFF, workingDays: capacity.effectiveSprintDays };
     const totalPts = metrics.devPts + metrics.reviewPts;
     const ptsPerDay = computePtsPerDay(totalPts, timeOff.workingDays);
-    const capacityPct = capacity.effectiveSprintDays > 0
-      ? Math.round((timeOff.workingDays / capacity.effectiveSprintDays) * 100)
+    const capacityPct = capacity.defaultWorkingDays > 0
+      ? Math.round((timeOff.workingDays / capacity.defaultWorkingDays) * 100)
       : 0;
     return {
       member,

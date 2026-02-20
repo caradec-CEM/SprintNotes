@@ -77,7 +77,7 @@ export function useTeamTrends(sprintCount = 6): TeamTrendData {
       const engineerTimeOffs = TEAM_MEMBERS.map((m) =>
         sNotes?.timeOff?.[m.id] ?? { ...DEFAULT_TIME_OFF, workingDays: sprintCapacity.effectiveSprintDays }
       );
-      const capacityPercent = computeTeamCapacityPercent(engineerTimeOffs, sprintCapacity.effectiveSprintDays);
+      const capacityPercent = computeTeamCapacityPercent(engineerTimeOffs, sprintCapacity.defaultWorkingDays);
       const normalizedTotal = computeNormalizedVelocity(total, capacityPercent);
 
       return {

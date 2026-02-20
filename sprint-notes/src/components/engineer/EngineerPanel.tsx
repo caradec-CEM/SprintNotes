@@ -58,7 +58,7 @@ export function EngineerPanel({ engineerId }: EngineerPanelProps) {
       <div className="engineer-panel__content">
         {/* Metrics */}
         <Section title="Sprint Metrics">
-          <MetricsGrid metrics={metrics} workingDays={timeOff.workingDays} effectiveSprintDays={capacity.effectiveSprintDays} />
+          <MetricsGrid metrics={metrics} workingDays={timeOff.workingDays} defaultWorkingDays={capacity.defaultWorkingDays} />
         </Section>
 
         {/* Tickets */}

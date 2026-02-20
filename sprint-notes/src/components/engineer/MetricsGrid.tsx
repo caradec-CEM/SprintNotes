@@ -7,7 +7,7 @@ import './MetricsGrid.css';
 interface MetricsGridProps {
   metrics: EngineerMetrics;
   workingDays: number;
-  effectiveSprintDays: number;
+  defaultWorkingDays: number;
 }
 
 interface MetricCardProps {
@@ -29,11 +29,11 @@ function MetricCard({ label, value, suffix = '', variant = 'default' }: MetricCa
   );
 }
 
-export function MetricsGrid({ metrics, workingDays, effectiveSprintDays }: MetricsGridProps) {
+export function MetricsGrid({ metrics, workingDays, defaultWorkingDays }: MetricsGridProps) {
   const totalPts = metrics.devPts + metrics.reviewPts;
   const ptsPerDay = computePtsPerDay(totalPts, workingDays);
-  const capacityPct = effectiveSprintDays > 0
-    ? Math.round((workingDays / effectiveSprintDays) * 100)
+  const capacityPct = defaultWorkingDays > 0
+    ? Math.round((workingDays / defaultWorkingDays) * 100)
     : 0;
 
   return (

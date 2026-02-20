@@ -38,8 +38,8 @@ export function useIndividualTrends(engineerId: string, sprintCount = 5): TrendD
       const sNotes = sprintNotes[sprint.id];
       const sprintCapacity = sNotes?.capacity ?? DEFAULT_SPRINT_CAPACITY;
       const engineerTimeOff = sNotes?.timeOff?.[engineerId] ?? { ...DEFAULT_TIME_OFF, workingDays: sprintCapacity.effectiveSprintDays };
-      const capacityPercent = sprintCapacity.effectiveSprintDays > 0
-        ? Math.round((engineerTimeOff.workingDays / sprintCapacity.effectiveSprintDays) * 100)
+      const capacityPercent = sprintCapacity.defaultWorkingDays > 0
+        ? Math.round((engineerTimeOff.workingDays / sprintCapacity.defaultWorkingDays) * 100)
         : 0;
       const normalizedTotal = computeNormalizedVelocity(total, capacityPercent);
 

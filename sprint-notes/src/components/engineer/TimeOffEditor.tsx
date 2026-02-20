@@ -26,8 +26,8 @@ export function TimeOffEditor({ engineerId }: TimeOffEditorProps) {
     updateEngineerTimeOff(currentSprint.id, engineerId, value);
   };
 
-  const capacityPercent = maxPto > 0
-    ? Math.round((timeOff.workingDays / maxPto) * 100)
+  const capacityPercent = capacity.defaultWorkingDays > 0
+    ? Math.round((timeOff.workingDays / capacity.defaultWorkingDays) * 100)
     : 0;
 
   return (
@@ -44,7 +44,7 @@ export function TimeOffEditor({ engineerId }: TimeOffEditorProps) {
         />
       </label>
       <span className="time-off-editor__working">
-        {timeOff.workingDays} of {maxPto} effective days ({capacityPercent}%)
+        {timeOff.workingDays} of {capacity.defaultWorkingDays} days ({capacityPercent}%)
       </span>
       {capacity.teamHolidays > 0 && (
         <span className="time-off-editor__note">
