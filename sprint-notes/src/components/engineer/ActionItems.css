@@ -13,7 +13,8 @@
   gap: var(--space-sm);
   padding: var(--space-sm);
   background: var(--color-bg);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
+  transition: background-color var(--transition-fast);
 }
 
 .action-items__item--completed {
@@ -45,7 +46,7 @@
   border: 2px solid var(--color-border);
   border-radius: var(--radius-sm);
   background: var(--color-bg-card);
-  transition: all 0.15s;
+  transition: all var(--transition-fast);
 }
 
 .action-items__checkbox:checked + .action-items__checkmark {
@@ -64,7 +65,7 @@
 }
 
 .action-items__checkbox:focus + .action-items__checkmark {
-  box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.2);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 .action-items__text {
@@ -91,7 +92,7 @@
   cursor: pointer;
   border-radius: var(--radius-sm);
   opacity: 0;
-  transition: opacity 0.15s, background 0.15s;
+  transition: opacity var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
 }
 
 .action-items__item:hover .action-items__delete {
@@ -113,13 +114,17 @@
   flex: 1;
   padding: var(--space-sm);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
+  background-color: var(--color-bg-card);
+  color: var(--color-text);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .action-items__input:focus {
   outline: none;
   border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 .action-items__add-btn {

@@ -12,16 +12,17 @@
 .summary-table td {
   padding: var(--space-sm) var(--space-md);
   text-align: center;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent);
 }
 
 .summary-table th {
-  font-weight: 600;
+  font-weight: 500;
   color: var(--color-text-subtle);
-  background: var(--color-bg);
+  background: color-mix(in srgb, var(--color-bg) 40%, var(--color-bg-card));
   text-transform: uppercase;
   font-size: var(--font-size-xs);
-  letter-spacing: 0.5px;
+  letter-spacing: 0.02em;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .summary-table__name {
@@ -88,12 +89,13 @@
   text-align: center;
   background: var(--color-bg);
   color: var(--color-text);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .summary-table__pto-input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.2);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 .summary-table__capacity {
@@ -104,8 +106,8 @@
   display: inline-block;
   font-size: var(--font-size-xs);
   font-weight: 600;
-  padding: 2px 6px;
-  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+  border-radius: var(--radius-md);
 }
 
 .summary-table__capacity-badge--good {
@@ -128,20 +130,29 @@
   color: var(--color-primary);
 }
 
+.summary-table tbody tr {
+  transition: background-color var(--transition-fast);
+}
+
 .summary-table tbody tr:hover {
-  background: var(--color-bg-hover);
+  background: color-mix(in srgb, var(--color-bg-hover) 70%, transparent);
+}
+
+.summary-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .summary-table tfoot {
-  background: var(--color-bg);
+  background: color-mix(in srgb, var(--color-bg) 40%, var(--color-bg-card));
 }
 
 .summary-table tfoot td {
-  border-top: 2px solid var(--color-border);
+  border-top: 1px solid var(--color-border);
+  border-bottom: none;
 }
 
 .summary-table__empty {
-  padding: var(--space-lg);
+  padding: var(--space-xl) var(--space-lg);
   text-align: center;
   color: var(--color-text-subtle);
 }

@@ -24,7 +24,7 @@
   padding: var(--space-sm) var(--space-md);
   padding-right: var(--space-xl);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   background-color: var(--color-bg-card);
   font-size: var(--font-size-md);
   color: var(--color-text);
@@ -34,6 +34,7 @@
   background-repeat: no-repeat;
   background-position: right 8px center;
   min-width: 240px;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .sprint-selector__select:hover {
@@ -43,5 +44,9 @@
 .sprint-selector__select:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.2);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
+}
+
+[data-theme="dark"] .sprint-selector__select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23768390' d='M3 4.5L6 8l3-3.5H3z'/%3E%3C/svg%3E");
 }

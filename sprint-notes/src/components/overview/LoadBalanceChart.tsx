@@ -76,7 +76,10 @@ export function LoadBalanceChart() {
               backgroundColor: cc.tooltipBg,
               border: `1px solid ${cc.tooltipBorder}`,
               borderRadius: '4px',
+              color: cc.text,
             }}
+            labelStyle={{ color: cc.text }}
+            itemStyle={{ color: cc.text }}
             cursor={{ fill: cc.cursorFill }}
             formatter={(value, name) => [
               `${value} pts`,
@@ -87,6 +90,7 @@ export function LoadBalanceChart() {
             formatter={(value) =>
               value === 'devPts' ? 'Dev Points' : 'Review Points'
             }
+            wrapperStyle={{ color: cc.text }}
           />
           <Bar dataKey="devPts" stackId="a" fill={cc.dev} name="devPts" />
           <Bar dataKey="reviewPts" stackId="a" fill={cc.review} name="reviewPts" />

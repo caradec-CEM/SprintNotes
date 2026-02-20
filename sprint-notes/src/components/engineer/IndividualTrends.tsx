@@ -114,7 +114,10 @@ export function IndividualTrends({ engineerId }: IndividualTrendsProps) {
                   backgroundColor: cc.tooltipBg,
                   border: `1px solid ${cc.tooltipBorder}`,
                   borderRadius: '4px',
+                  color: cc.text,
                 }}
+                labelStyle={{ color: cc.text }}
+                itemStyle={{ color: cc.text }}
                 labelFormatter={(label, payload) => {
                   const item = payload?.[0]?.payload;
                   if (item && item.capacityPercent < 100) {
@@ -123,7 +126,7 @@ export function IndividualTrends({ engineerId }: IndividualTrendsProps) {
                   return label;
                 }}
               />
-              <Legend />
+              <Legend wrapperStyle={{ color: cc.text }} />
               <Line
                 type="monotone"
                 dataKey="total"
@@ -182,7 +185,10 @@ export function IndividualTrends({ engineerId }: IndividualTrendsProps) {
                   backgroundColor: cc.tooltipBg,
                   border: `1px solid ${cc.tooltipBorder}`,
                   borderRadius: '4px',
+                  color: cc.text,
                 }}
+                labelStyle={{ color: cc.text }}
+                itemStyle={{ color: cc.text }}
                 cursor={{ fill: cc.cursorFill }}
                 labelFormatter={(label, payload) => {
                   const item = payload?.[0]?.payload;
@@ -192,7 +198,7 @@ export function IndividualTrends({ engineerId }: IndividualTrendsProps) {
                   return label;
                 }}
               />
-              <Legend />
+              <Legend wrapperStyle={{ color: cc.text }} />
               <Bar
                 dataKey="devPts"
                 stackId="a"

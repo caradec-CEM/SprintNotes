@@ -115,7 +115,10 @@ export function TeamTrends() {
                   backgroundColor: cc.tooltipBg,
                   border: `1px solid ${cc.tooltipBorder}`,
                   borderRadius: '4px',
+                  color: cc.text,
                 }}
+                labelStyle={{ color: cc.text }}
+                itemStyle={{ color: cc.text }}
                 formatter={(value: number, name: string) => {
                   if (name === 'Adjusted') return [`${value} pts`, 'Adjusted (100% capacity)'];
                   return [`${value} pts`, 'Total Points'];
@@ -175,7 +178,10 @@ export function TeamTrends() {
                   backgroundColor: cc.tooltipBg,
                   border: `1px solid ${cc.tooltipBorder}`,
                   borderRadius: '4px',
+                  color: cc.text,
                 }}
+                labelStyle={{ color: cc.text }}
+                itemStyle={{ color: cc.text }}
                 cursor={{ fill: cc.cursorFill }}
                 formatter={(value: number) => [`${value} tickets`, 'Completed']}
                 labelFormatter={(label, payload) => {

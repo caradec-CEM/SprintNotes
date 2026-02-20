@@ -60,14 +60,21 @@
   --space-xl: 32px;
 
   /* Border radius */
-  --radius-sm: 3px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(9, 30, 66, 0.08);
-  --shadow-md: 0 4px 8px rgba(9, 30, 66, 0.12);
-  --shadow-lg: 0 8px 16px rgba(9, 30, 66, 0.16);
+  /* Focus */
+  --color-focus-ring: rgba(0, 82, 204, 0.25);
+
+  /* Shadows — layered for natural depth */
+  --shadow-sm: 0 1px 2px rgba(9, 30, 66, 0.06), 0 0px 1px rgba(9, 30, 66, 0.08);
+  --shadow-md: 0 1px 3px rgba(9, 30, 66, 0.06), 0 4px 8px rgba(9, 30, 66, 0.1);
+  --shadow-lg: 0 2px 4px rgba(9, 30, 66, 0.06), 0 8px 16px rgba(9, 30, 66, 0.12);
+
+  /* Transition */
+  --transition-fast: 150ms ease;
+  --transition-base: 200ms ease;
 
   /* Typography */
   --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
@@ -90,10 +97,10 @@
   --color-text-subtle: #768390;
   --color-border: #373e47;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.5);
+  /* Shadows — layered for natural depth */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2), 0 0px 1px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 1px 3px rgba(0, 0, 0, 0.2), 0 4px 8px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 2px 4px rgba(0, 0, 0, 0.2), 0 8px 16px rgba(0, 0, 0, 0.35);
 
   /* Semantic tints */
   --color-tint-green-bg: #1a3a2a;
@@ -122,6 +129,9 @@
   --color-chart-pto-label: #e3b341;
 
   --color-btn-primary-text: #ffffff;
+
+  /* Focus */
+  --color-focus-ring: rgba(76, 154, 255, 0.35);
 }
 
 * {
@@ -144,6 +154,7 @@ body {
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   padding: var(--space-md);
+  transition: box-shadow var(--transition-base);
 }
 
 /* Button base */
@@ -158,7 +169,11 @@ body {
   font-size: var(--font-size-md);
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s, box-shadow 0.2s;
+  transition: background-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+.btn:active {
+  transform: scale(0.98);
 }
 
 .btn-primary {
@@ -168,6 +183,12 @@ body {
 
 .btn-primary:hover {
   background: var(--color-primary-hover);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 .btn-secondary {
@@ -177,6 +198,11 @@ body {
 
 .btn-secondary:hover {
   background: var(--color-border);
+}
+
+.btn-secondary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 /* Link styling */
