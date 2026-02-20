@@ -38,6 +38,7 @@ export interface Ticket {
   inProgressDuration?: StatusDuration;
   inReviewDuration?: StatusDuration;
   pointChange?: PointChange;
+  isCarryOver?: boolean;
 }
 
 // Sprint data

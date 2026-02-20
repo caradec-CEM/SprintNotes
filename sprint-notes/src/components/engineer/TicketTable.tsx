@@ -164,6 +164,9 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
             <tr key={ticket.key}>
               <td>
                 <TicketLink ticketKey={ticket.key} summary={ticket.summary} />
+                {ticket.isCarryOver && (
+                  <span className="badge badge--carryover" title="Carried over from previous sprint">CO</span>
+                )}
               </td>
               <td>
                 <TypeBadge type={ticket.type} />

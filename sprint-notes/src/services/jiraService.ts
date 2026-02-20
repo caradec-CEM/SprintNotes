@@ -67,7 +67,7 @@ async function jiraFetch<T>(
 }
 
 // Transform raw JIRA issue to app format
-function transformIssue(raw: JiraIssueRaw): Ticket {
+function transformIssue(raw: JiraIssueRaw, sprintId: string): Ticket {
   const developerField = raw.fields.customfield_10124;
   const reviewerField = raw.fields.customfield_10058;
   const assigneeField = raw.fields.assignee;
@@ -167,6 +167,12 @@ function transformIssue(raw: JiraIssueRaw): Ticket {
   // Extract point changes from changelog
   const pointChange = extractPointChange(raw.changelog, raw.key);
 
+  // Detect carry-over: ticket was in a previous sprint if any sprint ID < current
+  const sprintField = raw.fields.customfield_10020;
+  const currentSprintId = parseInt(sprintId);
+  const isCarryOver = Array.isArray(sprintField) &&
+    sprintField.some(s => s.id < currentSprintId);
+
   // Categorize labels
   const labels = raw.fields.labels ?? [];
   const categorizedLabels = categorizeLabels(labels);
@@ -192,6 +198,7 @@ function transformIssue(raw: JiraIssueRaw): Ticket {
     inProgressDuration,
     inReviewDuration,
     pointChange,
+    isCarryOver,
   };
 }
 
@@ -269,7 +276,7 @@ export async function fetchSprintIssues(sprintId: string): Promise<Ticket[]> {
 
   // Combine and transform
   const allIssues = [...cpData.issues, ...itData.issues];
-  const tickets = allIssues.map(transformIssue);
+  const tickets = allIssues.map(raw => transformIssue(raw, sprintId));
 
   // TEMPORARY: Collect all unique labels for analysis
   const allLabels = new Set<string>();

@@ -75,3 +75,11 @@
   background-color: #fff0b3;
   color: #172b4d;
 }
+
+/* Carry-over badge */
+.badge--carryover {
+  background-color: #fff3e0;
+  color: #e65100;
+  margin-left: 6px;
+  font-size: 0.65rem;
+}
