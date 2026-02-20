@@ -18,7 +18,7 @@ const jsonFileStorage: StateStorage = {
     try {
       await fetch('/api/notes', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain' },
         body: value,
       });
     } catch {
@@ -29,7 +29,7 @@ const jsonFileStorage: StateStorage = {
     try {
       await fetch('/api/notes', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain' },
         body: '{}',
       });
     } catch {
