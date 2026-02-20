@@ -1,32 +1,34 @@
 import { create } from 'zustand';
-import { persist, type StateStorage } from 'zustand/middleware';
+import { persist, createJSONStorage, type StateStorage } from 'zustand/middleware';
 import type { DiscussionNotes, ActionItem, EngineerNotes, SprintNotes, EngineerTimeOff, SprintCapacity } from '../types';
 import { DEFAULT_SPRINT_CAPACITY, DEFAULT_TIME_OFF, computeEffectiveSprintDays, computeEngineerWorkingDays } from '../utils/capacityUtils';
 
-// Custom storage adapter that persists to data/notes.json via the Vite dev server API
+// Low-level storage adapter (like localStorage) — deals only in strings.
+// createJSONStorage wraps this to handle JSON parse/stringify for Zustand.
 const jsonFileStorage: StateStorage = {
-  getItem: async () => {
+  getItem: async (_name: string) => {
     try {
       const res = await fetch('/api/notes');
       if (!res.ok) return null;
-      return await res.text();
+      const text = await res.text();
+      // Return null for empty/whitespace-only responses
+      return text.trim() || null;
     } catch {
       return null;
     }
   },
-  setItem: async (_name: string, value: unknown) => {
+  setItem: async (_name: string, value: string) => {
     try {
-      const body = typeof value === 'string' ? value : JSON.stringify(value);
       await fetch('/api/notes', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
-        body,
+        body: value,
       });
     } catch {
       // API unreachable (e.g. production build) — silently ignore
     }
   },
-  removeItem: async () => {
+  removeItem: async (_name: string) => {
     try {
       await fetch('/api/notes', {
         method: 'POST',
@@ -339,7 +341,7 @@ export const useNotesStore = create<NotesState>()(
     }),
     {
       name: 'sprint-notes-storage',
-      storage: jsonFileStorage,
+      storage: createJSONStorage(() => jsonFileStorage),
     }
   )
 );
