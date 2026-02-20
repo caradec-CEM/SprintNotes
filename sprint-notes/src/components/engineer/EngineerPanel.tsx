@@ -20,15 +20,16 @@ export function EngineerPanel({ engineerId }: EngineerPanelProps) {
   const member = findMemberById(engineerId);
   const { allTickets, metrics, notes } = useEngineerData(engineerId);
   const currentSprint = useSprintStore((state) => state.currentSprint);
-  const getEngineerTimeOff = useNotesStore((state) => state.getEngineerTimeOff);
-  const getSprintCapacity = useNotesStore((state) => state.getSprintCapacity);
+  const sprintNotes = useNotesStore((state) => state.sprintNotes);
 
   if (!member) {
     return <div className="engineer-panel__error">Engineer not found</div>;
   }
 
-  const timeOff = currentSprint ? getEngineerTimeOff(currentSprint.id, engineerId) : DEFAULT_TIME_OFF;
-  const capacity = currentSprint ? getSprintCapacity(currentSprint.id) : DEFAULT_SPRINT_CAPACITY;
+  const sprintId = currentSprint?.id;
+  const sNotes = sprintId ? sprintNotes[sprintId] : undefined;
+  const capacity = sNotes?.capacity ?? DEFAULT_SPRINT_CAPACITY;
+  const timeOff = sNotes?.timeOff?.[engineerId] ?? { ...DEFAULT_TIME_OFF, workingDays: capacity.effectiveSprintDays };
 
   return (
     <div className="engineer-panel">

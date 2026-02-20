@@ -1,21 +1,21 @@
 import { useSprintStore } from '../../stores/sprintStore';
 import { useNotesStore } from '../../stores/notesStore';
 import { TEAM_MEMBERS } from '../../config/team';
-import { computeTeamCapacityPercent } from '../../utils/capacityUtils';
+import { DEFAULT_SPRINT_CAPACITY, DEFAULT_TIME_OFF, computeTeamCapacityPercent } from '../../utils/capacityUtils';
 import './SprintCapacityEditor.css';
 
 export function SprintCapacityEditor() {
   const currentSprint = useSprintStore((state) => state.currentSprint);
-  const getSprintCapacity = useNotesStore((state) => state.getSprintCapacity);
+  const sprintNotes = useNotesStore((state) => state.sprintNotes);
   const updateSprintCapacity = useNotesStore((state) => state.updateSprintCapacity);
-  const getEngineerTimeOff = useNotesStore((state) => state.getEngineerTimeOff);
 
   if (!currentSprint) return null;
 
-  const capacity = getSprintCapacity(currentSprint.id);
+  const notes = sprintNotes[currentSprint.id];
+  const capacity = notes?.capacity ?? DEFAULT_SPRINT_CAPACITY;
 
   const engineerTimeOffs = TEAM_MEMBERS.map((m) =>
-    getEngineerTimeOff(currentSprint.id, m.id)
+    notes?.timeOff?.[m.id] ?? { ...DEFAULT_TIME_OFF, workingDays: capacity.effectiveSprintDays }
   );
   const teamCapacity = computeTeamCapacityPercent(engineerTimeOffs, capacity.effectiveSprintDays);
 

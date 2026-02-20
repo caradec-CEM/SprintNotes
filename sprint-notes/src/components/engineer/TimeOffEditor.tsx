@@ -1,5 +1,6 @@
 import { useSprintStore } from '../../stores/sprintStore';
 import { useNotesStore } from '../../stores/notesStore';
+import { DEFAULT_SPRINT_CAPACITY, DEFAULT_TIME_OFF } from '../../utils/capacityUtils';
 import './TimeOffEditor.css';
 
 interface TimeOffEditorProps {
@@ -8,16 +9,16 @@ interface TimeOffEditorProps {
 
 export function TimeOffEditor({ engineerId }: TimeOffEditorProps) {
   const currentSprint = useSprintStore((state) => state.currentSprint);
-  const getEngineerTimeOff = useNotesStore((state) => state.getEngineerTimeOff);
+  const sprintNotes = useNotesStore((state) => state.sprintNotes);
   const updateEngineerTimeOff = useNotesStore((state) => state.updateEngineerTimeOff);
-  const getSprintCapacity = useNotesStore((state) => state.getSprintCapacity);
 
   if (!currentSprint) {
     return null;
   }
 
-  const capacity = getSprintCapacity(currentSprint.id);
-  const timeOff = getEngineerTimeOff(currentSprint.id, engineerId);
+  const notes = sprintNotes[currentSprint.id];
+  const capacity = notes?.capacity ?? DEFAULT_SPRINT_CAPACITY;
+  const timeOff = notes?.timeOff?.[engineerId] ?? { ...DEFAULT_TIME_OFF, workingDays: capacity.effectiveSprintDays };
   const maxPto = capacity.effectiveSprintDays;
 
   const handlePtoChange = (e: React.ChangeEvent<HTMLInputElement>) => {

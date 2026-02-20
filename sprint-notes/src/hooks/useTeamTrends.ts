@@ -3,7 +3,7 @@ import { useHistoryStore } from '../stores/historyStore';
 import { useSprintStore } from '../stores/sprintStore';
 import { useNotesStore } from '../stores/notesStore';
 import { TEAM_MEMBERS } from '../config/team';
-import { computeTeamCapacityPercent, computeNormalizedVelocity } from '../utils/capacityUtils';
+import { DEFAULT_SPRINT_CAPACITY, DEFAULT_TIME_OFF, computeTeamCapacityPercent, computeNormalizedVelocity } from '../utils/capacityUtils';
 
 export interface TeamVelocityDataPoint {
   sprintId: string;
@@ -35,8 +35,7 @@ function getSprintNum(name: string): number {
 export function useTeamTrends(sprintCount = 6): TeamTrendData {
   const history = useHistoryStore((state) => state.history);
   const selectedSprintId = useSprintStore((state) => state.selectedSprintId);
-  const getSprintCapacity = useNotesStore((state) => state.getSprintCapacity);
-  const getEngineerTimeOff = useNotesStore((state) => state.getEngineerTimeOff);
+  const sprintNotes = useNotesStore((state) => state.sprintNotes);
 
   return useMemo(() => {
     // Find the selected sprint in history
@@ -73,9 +72,10 @@ export function useTeamTrends(sprintCount = 6): TeamTrendData {
       const ticketCount = sprint.totalTickets ?? reviewCount;
 
       // Capacity data from notesStore
-      const sprintCapacity = getSprintCapacity(sprint.id);
+      const sNotes = sprintNotes[sprint.id];
+      const sprintCapacity = sNotes?.capacity ?? DEFAULT_SPRINT_CAPACITY;
       const engineerTimeOffs = TEAM_MEMBERS.map((m) =>
-        getEngineerTimeOff(sprint.id, m.id)
+        sNotes?.timeOff?.[m.id] ?? { ...DEFAULT_TIME_OFF, workingDays: sprintCapacity.effectiveSprintDays }
       );
       const capacityPercent = computeTeamCapacityPercent(engineerTimeOffs, sprintCapacity.effectiveSprintDays);
       const normalizedTotal = computeNormalizedVelocity(total, capacityPercent);
@@ -105,7 +105,7 @@ export function useTeamTrends(sprintCount = 6): TeamTrendData {
         previous,
       },
     };
-  }, [sprintCount, history.sprints, selectedSprintId, getSprintCapacity, getEngineerTimeOff]);
+  }, [sprintCount, history.sprints, selectedSprintId, sprintNotes]);
 }
 
 // Helper to calculate delta between two team metrics

@@ -3,7 +3,7 @@ import { useHistoryStore } from '../stores/historyStore';
 import { useSprintStore } from '../stores/sprintStore';
 import { useNotesStore } from '../stores/notesStore';
 import type { TrendData, VelocityDataPoint, EngineerMetrics } from '../types';
-import { computeNormalizedVelocity } from '../utils/capacityUtils';
+import { DEFAULT_SPRINT_CAPACITY, DEFAULT_TIME_OFF, computeNormalizedVelocity } from '../utils/capacityUtils';
 
 // Extract sprint number from name (e.g., "Engineering Sprint 54" -> 54)
 function getSprintNum(name: string): number {
@@ -14,8 +14,7 @@ function getSprintNum(name: string): number {
 export function useIndividualTrends(engineerId: string, sprintCount = 5): TrendData {
   const history = useHistoryStore((state) => state.history);
   const selectedSprintId = useSprintStore((state) => state.selectedSprintId);
-  const getSprintCapacity = useNotesStore((state) => state.getSprintCapacity);
-  const getEngineerTimeOff = useNotesStore((state) => state.getEngineerTimeOff);
+  const sprintNotes = useNotesStore((state) => state.sprintNotes);
 
   return useMemo(() => {
     // Find the selected sprint in history
@@ -36,8 +35,9 @@ export function useIndividualTrends(engineerId: string, sprintCount = 5): TrendD
       const total = metrics.devPts + metrics.reviewPts;
 
       // Capacity data
-      const sprintCapacity = getSprintCapacity(sprint.id);
-      const engineerTimeOff = getEngineerTimeOff(sprint.id, engineerId);
+      const sNotes = sprintNotes[sprint.id];
+      const sprintCapacity = sNotes?.capacity ?? DEFAULT_SPRINT_CAPACITY;
+      const engineerTimeOff = sNotes?.timeOff?.[engineerId] ?? { ...DEFAULT_TIME_OFF, workingDays: sprintCapacity.effectiveSprintDays };
       const capacityPercent = sprintCapacity.effectiveSprintDays > 0
         ? Math.round((engineerTimeOff.workingDays / sprintCapacity.effectiveSprintDays) * 100)
         : 0;
@@ -65,7 +65,7 @@ export function useIndividualTrends(engineerId: string, sprintCount = 5): TrendD
         previous: previousMetrics,
       },
     };
-  }, [engineerId, sprintCount, history.sprints, selectedSprintId, getSprintCapacity, getEngineerTimeOff]);
+  }, [engineerId, sprintCount, history.sprints, selectedSprintId, sprintNotes]);
 }
 
 // Helper to calculate delta between two metrics

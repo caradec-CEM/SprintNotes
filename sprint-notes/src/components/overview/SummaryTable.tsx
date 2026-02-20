@@ -2,25 +2,25 @@ import { useSprintStore } from '../../stores/sprintStore';
 import { useNotesStore } from '../../stores/notesStore';
 import { TEAM_MEMBERS } from '../../config/team';
 import { calculateEngineerMetrics } from '../../stores/historyStore';
-import { computePtsPerDay } from '../../utils/capacityUtils';
+import { DEFAULT_SPRINT_CAPACITY, DEFAULT_TIME_OFF, computePtsPerDay } from '../../utils/capacityUtils';
 import './SummaryTable.css';
 
 export function SummaryTable() {
   const currentSprint = useSprintStore((state) => state.currentSprint);
-  const getEngineerTimeOff = useNotesStore((state) => state.getEngineerTimeOff);
+  const sprintNotes = useNotesStore((state) => state.sprintNotes);
   const updateEngineerTimeOff = useNotesStore((state) => state.updateEngineerTimeOff);
-  const getSprintCapacity = useNotesStore((state) => state.getSprintCapacity);
 
   if (!currentSprint) {
     return <div className="summary-table__empty">No sprint data loaded</div>;
   }
 
-  const capacity = getSprintCapacity(currentSprint.id);
+  const notes = sprintNotes[currentSprint.id];
+  const capacity = notes?.capacity ?? DEFAULT_SPRINT_CAPACITY;
 
   // Calculate metrics for each team member
   const data = TEAM_MEMBERS.map((member) => {
     const metrics = calculateEngineerMetrics(member.id, currentSprint.tickets);
-    const timeOff = getEngineerTimeOff(currentSprint.id, member.id);
+    const timeOff = notes?.timeOff?.[member.id] ?? { ...DEFAULT_TIME_OFF, workingDays: capacity.effectiveSprintDays };
     const totalPts = metrics.devPts + metrics.reviewPts;
     const ptsPerDay = computePtsPerDay(totalPts, timeOff.workingDays);
     const capacityPct = capacity.effectiveSprintDays > 0
