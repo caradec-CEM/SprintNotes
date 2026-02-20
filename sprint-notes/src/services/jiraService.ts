@@ -2,7 +2,7 @@ import { JIRA_CONFIG, JIRA_ENDPOINTS } from '../config/jira';
 import { findMemberByAccountId } from '../config/team';
 import { getStatusConfig } from '../config/statuses';
 import { categorizeLabels } from '../config/labels';
-import { calculateStatusDuration } from '../utils/dateUtils';
+import { calculateStatusDuration, extractPointChange } from '../utils/dateUtils';
 import type {
   Sprint,
   Ticket,
@@ -164,6 +164,9 @@ function transformIssue(raw: JiraIssueRaw): Ticket {
     raw.key
   );
 
+  // Extract point changes from changelog
+  const pointChange = extractPointChange(raw.changelog, raw.key);
+
   // Categorize labels
   const labels = raw.fields.labels ?? [];
   const categorizedLabels = categorizeLabels(labels);
@@ -188,6 +191,7 @@ function transformIssue(raw: JiraIssueRaw): Ticket {
     categorizedLabels,
     inProgressDuration,
     inReviewDuration,
+    pointChange,
   };
 }
 

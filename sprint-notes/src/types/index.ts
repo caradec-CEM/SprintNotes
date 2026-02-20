@@ -37,6 +37,7 @@ export interface Ticket {
   categorizedLabels: CategorizedLabels;
   inProgressDuration?: StatusDuration;
   inReviewDuration?: StatusDuration;
+  pointChange?: PointChange;
 }
 
 // Sprint data
@@ -139,6 +140,11 @@ export interface JiraChangelog {
 export interface StatusDuration {
   days: number;       // Business days (weekdays only)
   isActive: boolean;  // Currently in this status
+}
+
+export interface PointChange {
+  from: number;
+  to: number;
 }
 
 // Raw JIRA API response types

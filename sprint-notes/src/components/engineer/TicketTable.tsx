@@ -194,6 +194,14 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
               </td>
               <td className={`points-cell ${getPointsClass(ticket.points)}`}>
                 {ticket.points || '-'}
+                {ticket.pointChange && (
+                  <span
+                    className={ticket.pointChange.to > ticket.pointChange.from ? 'points-change--up' : 'points-change--down'}
+                    title={`Changed from ${ticket.pointChange.from}`}
+                  >
+                    {ticket.pointChange.to > ticket.pointChange.from ? '▲' : '▼'}
+                  </span>
+                )}
               </td>
               {showDevReviewer && (
                 <>

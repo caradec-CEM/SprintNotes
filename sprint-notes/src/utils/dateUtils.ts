@@ -1,4 +1,4 @@
-import type { JiraChangelog, StatusDuration } from '../types';
+import type { JiraChangelog, StatusDuration, PointChange } from '../types';
 
 /**
  * Calculate business days (weekdays only) between two timestamps
@@ -201,4 +201,45 @@ export function calculateStatusDuration(
   }
 
   return totalDays > 0 ? { days: totalDays, isActive: currentlyInStatus } : undefined;
+}
+
+/**
+ * Extract the most recent story point change from changelog
+ * Uses only the last change entry to avoid spanning across sprints
+ */
+export function extractPointChange(
+  changelog: JiraChangelog | undefined,
+  _issueKey?: string
+): PointChange | undefined {
+  if (!changelog?.histories) return undefined;
+
+  // Sort histories chronologically
+  const sortedHistories = [...changelog.histories].sort(
+    (a, b) => new Date(a.created).getTime() - new Date(b.created).getTime()
+  );
+
+  let lastFrom: number | null = null;
+  let lastTo: number | null = null;
+
+  for (const history of sortedHistories) {
+    for (const item of history.items) {
+      if (item.field === 'Story Points') {
+        const from = item.fromString ? parseFloat(item.fromString) : null;
+        const to = item.toString ? parseFloat(item.toString) : null;
+
+        if (from !== null) {
+          lastFrom = from;
+        }
+        if (to !== null) {
+          lastTo = to;
+        }
+      }
+    }
+  }
+
+  if (lastFrom !== null && lastTo !== null && lastFrom !== lastTo) {
+    return { from: lastFrom, to: lastTo };
+  }
+
+  return undefined;
 }

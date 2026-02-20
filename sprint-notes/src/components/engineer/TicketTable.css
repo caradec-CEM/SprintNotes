@@ -197,6 +197,29 @@
   color: #bf2600;
 }
 
+/* Point change indicators — zero-width wrapper so arrow doesn't shift the number */
+.points-change--up,
+.points-change--down {
+  display: inline-block;
+  width: 0;
+  overflow: visible;
+  margin-left: 2px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  cursor: help;
+  position: relative;
+  top: -1px;
+  vertical-align: middle;
+}
+
+.points-change--up {
+  color: #006644;
+}
+
+.points-change--down {
+  color: #bf2600;
+}
+
 @media print {
   .ticket-table th.sortable::after {
     content: none;
