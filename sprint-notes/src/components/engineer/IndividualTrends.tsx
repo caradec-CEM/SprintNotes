@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
   BarChart,
   Bar,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -22,7 +23,7 @@ interface IndividualTrendsProps {
 export function IndividualTrends({ engineerId }: IndividualTrendsProps) {
   const { velocityData, currentVsPrevious } = useIndividualTrends(engineerId, 6);
   const cc = useChartColors();
-  const [showNormalized, setShowNormalized] = useState(false);
+  const [showNormalized, setShowNormalized] = useState(true);
 
   if (velocityData.length < 2) {
     return (
@@ -174,6 +175,7 @@ export function IndividualTrends({ engineerId }: IndividualTrendsProps) {
                   border: `1px solid ${cc.tooltipBorder}`,
                   borderRadius: '4px',
                 }}
+                cursor={{ fill: cc.cursorFill }}
                 labelFormatter={(label, payload) => {
                   const item = payload?.[0]?.payload;
                   if (item && item.capacityPercent < 100) {
@@ -188,13 +190,27 @@ export function IndividualTrends({ engineerId }: IndividualTrendsProps) {
                 stackId="a"
                 fill={cc.dev}
                 name="Dev Points"
-              />
+              >
+                {velocityData.map((entry, index) => (
+                  <Cell
+                    key={index}
+                    fillOpacity={entry.capacityPercent < 100 ? 0.5 : 1}
+                  />
+                ))}
+              </Bar>
               <Bar
                 dataKey="reviewPts"
                 stackId="a"
                 fill={cc.review}
                 name="Review Points"
-              />
+              >
+                {velocityData.map((entry, index) => (
+                  <Cell
+                    key={index}
+                    fillOpacity={entry.capacityPercent < 100 ? 0.5 : 1}
+                  />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>

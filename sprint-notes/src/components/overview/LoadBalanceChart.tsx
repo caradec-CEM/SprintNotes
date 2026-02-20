@@ -77,6 +77,7 @@ export function LoadBalanceChart() {
               border: `1px solid ${cc.tooltipBorder}`,
               borderRadius: '4px',
             }}
+            cursor={{ fill: cc.cursorFill }}
             formatter={(value, name) => [
               `${value} pts`,
               name === 'devPts' ? 'Dev Points' : 'Review Points',

@@ -9,6 +9,7 @@ const lightColors = {
   dev: '#36b37e',
   review: '#4c9aff',
   ptoLabel: '#b38600',
+  cursorFill: 'rgba(0, 0, 0, 0.06)',
 };
 
 const darkColors = {
@@ -20,6 +21,7 @@ const darkColors = {
   dev: '#56d364',
   review: '#79b8ff',
   ptoLabel: '#e3b341',
+  cursorFill: 'rgba(255, 255, 255, 0.08)',
 };
 
 export function useChartColors() {

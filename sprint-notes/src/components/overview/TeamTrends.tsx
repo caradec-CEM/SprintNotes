@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
   BarChart,
   Bar,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -18,7 +19,7 @@ import './TeamTrends.css';
 export function TeamTrends() {
   const { velocityData, currentVsPrevious } = useTeamTrends(6);
   const cc = useChartColors();
-  const [showNormalized, setShowNormalized] = useState(false);
+  const [showNormalized, setShowNormalized] = useState(true);
 
   if (velocityData.length < 2) {
     return (
@@ -175,6 +176,7 @@ export function TeamTrends() {
                   border: `1px solid ${cc.tooltipBorder}`,
                   borderRadius: '4px',
                 }}
+                cursor={{ fill: cc.cursorFill }}
                 formatter={(value: number) => [`${value} tickets`, 'Completed']}
                 labelFormatter={(label, payload) => {
                   const item = payload?.[0]?.payload;
@@ -195,7 +197,14 @@ export function TeamTrends() {
                 fill={cc.primary}
                 name="Tickets"
                 radius={[4, 4, 0, 0]}
-              />
+              >
+                {velocityData.map((entry, index) => (
+                  <Cell
+                    key={index}
+                    fillOpacity={entry.capacityPercent < 100 ? 0.5 : 1}
+                  />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
