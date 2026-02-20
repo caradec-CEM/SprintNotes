@@ -44,12 +44,12 @@
 
 .summary-table__dev-pts {
   font-weight: 600;
-  color: #006644;
+  color: var(--color-tint-green-text);
 }
 
 .summary-table__review-pts {
   font-weight: 600;
-  color: #0747a6;
+  color: var(--color-tint-blue-text);
 }
 
 .summary-table__total {
@@ -63,11 +63,11 @@
 }
 
 .summary-table__th--dev {
-  color: #006644;
+  color: var(--color-tint-green-text);
 }
 
 .summary-table__th--review {
-  color: #0747a6;
+  color: var(--color-tint-blue-text);
 }
 
 .summary-table__th--muted {
@@ -81,8 +81,8 @@
 
 .summary-table__pto-badge {
   display: inline-block;
-  background: #fff0b3;
-  color: #172b4d;
+  background: var(--color-tint-yellow-bg);
+  color: var(--color-tint-yellow-text);
   font-size: var(--font-size-xs);
   font-weight: 600;
   padding: 2px 6px;

@@ -37,7 +37,7 @@
 
 /* Platform grouping */
 .platform-group-header {
-  background: #f4f5f7;
+  background: var(--color-bg);
   border-top: 2px solid var(--color-border);
   border-bottom: 1px solid var(--color-border);
 }
@@ -51,7 +51,7 @@
 }
 
 .platform-group-header:hover {
-  background: #f4f5f7 !important;
+  background: var(--color-bg) !important;
 }
 
 .ticket-table .summary-cell {
@@ -76,28 +76,28 @@
 }
 
 .points--xsmall {
-  color: #006644;
-  background: #e3fcef;
+  color: var(--color-tint-green-text);
+  background: var(--color-tint-green-bg);
 }
 
 .points--small {
-  color: #0747a6;
-  background: #deebff;
+  color: var(--color-tint-blue-text);
+  background: var(--color-tint-blue-bg);
 }
 
 .points--medium {
-  color: #5243aa;
-  background: #eae6ff;
+  color: var(--color-tint-purple-text);
+  background: var(--color-tint-purple-bg);
 }
 
 .points--large {
-  color: #ff8b00;
-  background: #fff4e5;
+  color: var(--color-tint-orange-text);
+  background: var(--color-tint-orange-bg);
 }
 
 .points--xlarge {
-  color: #bf2600;
-  background: #ffebe6;
+  color: var(--color-tint-red-text);
+  background: var(--color-tint-red-bg);
 }
 
 .ticket-table__empty {
@@ -113,8 +113,8 @@
 }
 
 .person--highlight {
-  background: #deebff;
-  color: var(--color-primary);
+  background: var(--color-tint-blue-bg);
+  color: var(--color-tint-blue-text);
   padding: 2px 6px;
   border-radius: 3px;
   font-weight: 600;
@@ -137,16 +137,16 @@
 
 /* Product labels - Blue */
 .label-tag--product {
-  background: #deebff;
-  color: #0747a6;
-  border: 1px solid #b3d4ff;
+  background: var(--color-tint-blue-bg);
+  color: var(--color-tint-blue-text);
+  border: 1px solid var(--color-tint-blue-text);
 }
 
 /* Platform labels - Purple */
 .label-tag--platform {
-  background: #eae6ff;
-  color: #5243aa;
-  border: 1px solid #c0b6f2;
+  background: var(--color-tint-purple-bg);
+  color: var(--color-tint-purple-text);
+  border: 1px solid var(--color-tint-purple-text);
 }
 
 /* Misc labels - Gray (collapsed count) */
@@ -183,18 +183,18 @@
 
 /* Badge styles for relevant durations */
 .duration--fast {
-  background: #e3fcef;
-  color: #006644;
+  background: var(--color-tint-green-bg);
+  color: var(--color-tint-green-text);
 }
 
 .duration--medium {
-  background: #fff4e5;
-  color: #974f0c;
+  background: var(--color-tint-orange-bg);
+  color: var(--color-tint-orange-text);
 }
 
 .duration--slow {
-  background: #ffebe6;
-  color: #bf2600;
+  background: var(--color-tint-red-bg);
+  color: var(--color-tint-red-text);
 }
 
 /* Point change indicators — zero-width wrapper so arrow doesn't shift the number */
@@ -213,11 +213,11 @@
 }
 
 .points-change--up {
-  color: #006644;
+  color: var(--color-tint-green-text);
 }
 
 .points-change--down {
-  color: #bf2600;
+  color: var(--color-tint-red-text);
 }
 
 @media print {

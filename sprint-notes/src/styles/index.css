@@ -26,6 +26,32 @@
   --color-low: #36b37e;
   --color-lowest: #6554c0;
 
+  /* Semantic tints */
+  --color-tint-green-bg: #e3fcef;
+  --color-tint-green-text: #006644;
+  --color-tint-blue-bg: #deebff;
+  --color-tint-blue-text: #0747a6;
+  --color-tint-yellow-bg: #fff0b3;
+  --color-tint-yellow-text: #172b4d;
+  --color-tint-purple-bg: #eae6ff;
+  --color-tint-purple-text: #5243aa;
+  --color-tint-orange-bg: #fff4e5;
+  --color-tint-orange-text: #974f0c;
+  --color-tint-red-bg: #ffebe6;
+  --color-tint-red-text: #bf2600;
+  --color-tint-carryover-bg: #fff3e0;
+  --color-tint-carryover-text: #e65100;
+
+  /* Chart colors */
+  --color-chart-grid: #dfe1e6;
+  --color-chart-axis: #5e6c84;
+  --color-chart-tooltip-bg: #ffffff;
+  --color-chart-tooltip-border: #dfe1e6;
+  --color-chart-primary: #0052cc;
+  --color-chart-dev: #36b37e;
+  --color-chart-review: #4c9aff;
+  --color-chart-pto-label: #b38600;
+
   /* Spacing */
   --space-xs: 4px;
   --space-sm: 8px;
@@ -51,6 +77,51 @@
   --font-size-lg: 16px;
   --font-size-xl: 20px;
   --font-size-xxl: 24px;
+}
+
+[data-theme="dark"] {
+  /* Neutrals */
+  --color-primary: #4c9aff;
+  --color-primary-hover: #79b8ff;
+  --color-bg: #1a1d23;
+  --color-bg-card: #22272e;
+  --color-bg-hover: #2d333b;
+  --color-text: #cdd9e5;
+  --color-text-subtle: #768390;
+  --color-border: #373e47;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.5);
+
+  /* Semantic tints */
+  --color-tint-green-bg: #1a3a2a;
+  --color-tint-green-text: #56d364;
+  --color-tint-blue-bg: #1a2a3a;
+  --color-tint-blue-text: #79b8ff;
+  --color-tint-yellow-bg: #3a3520;
+  --color-tint-yellow-text: #e3b341;
+  --color-tint-purple-bg: #2a2340;
+  --color-tint-purple-text: #b392f0;
+  --color-tint-orange-bg: #3a2a1a;
+  --color-tint-orange-text: #f0a050;
+  --color-tint-red-bg: #3a1a1a;
+  --color-tint-red-text: #f97583;
+  --color-tint-carryover-bg: #3a2a1a;
+  --color-tint-carryover-text: #f0a050;
+
+  /* Chart colors */
+  --color-chart-grid: #373e47;
+  --color-chart-axis: #768390;
+  --color-chart-tooltip-bg: #2d333b;
+  --color-chart-tooltip-border: #444c56;
+  --color-chart-primary: #4c9aff;
+  --color-chart-dev: #56d364;
+  --color-chart-review: #79b8ff;
+  --color-chart-pto-label: #e3b341;
+
+  --color-btn-primary-text: #ffffff;
 }
 
 * {
@@ -92,7 +163,7 @@ body {
 
 .btn-primary {
   background: var(--color-primary);
-  color: white;
+  color: var(--color-btn-primary-text, #ffffff);
 }
 
 .btn-primary:hover {

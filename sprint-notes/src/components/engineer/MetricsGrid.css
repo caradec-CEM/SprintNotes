@@ -45,35 +45,35 @@
 
 /* Variants */
 .metric-card--primary {
-  background: #deebff;
+  background: var(--color-tint-blue-bg);
 }
 
 .metric-card--primary .metric-card__value {
-  color: #0747a6;
+  color: var(--color-tint-blue-text);
 }
 
 .metric-card--success {
-  background: #e3fcef;
+  background: var(--color-tint-green-bg);
 }
 
 .metric-card--success .metric-card__value {
-  color: #006644;
+  color: var(--color-tint-green-text);
 }
 
 .metric-card--warning {
-  background: #fff0b3;
+  background: var(--color-tint-yellow-bg);
 }
 
 .metric-card--warning .metric-card__value {
-  color: #172b4d;
+  color: var(--color-tint-yellow-text);
 }
 
 .metric-card--secondary {
-  background: #deebff;
+  background: var(--color-tint-blue-bg);
 }
 
 .metric-card--secondary .metric-card__value {
-  color: #0747a6;
+  color: var(--color-tint-blue-text);
 }
 
 .metric-card--muted {

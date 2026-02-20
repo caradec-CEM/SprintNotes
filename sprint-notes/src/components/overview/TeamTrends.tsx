@@ -11,10 +11,12 @@ import {
   ReferenceLine,
 } from 'recharts';
 import { useTeamTrends, calculateTeamDelta } from '../../hooks/useTeamTrends';
+import { useChartColors } from '../../hooks/useChartColors';
 import './TeamTrends.css';
 
 export function TeamTrends() {
   const { velocityData, currentVsPrevious } = useTeamTrends(6);
+  const cc = useChartColors();
 
   if (velocityData.length < 2) {
     return (
@@ -77,33 +79,33 @@ export function TeamTrends() {
           <h4 className="team-trends__subtitle">Team Velocity</h4>
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={velocityData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#dfe1e6" />
+              <CartesianGrid strokeDasharray="3 3" stroke={cc.grid} />
               <XAxis
                 dataKey="sprintName"
                 tick={{ fontSize: 12 }}
-                stroke="#5e6c84"
+                stroke={cc.axis}
               />
-              <YAxis tick={{ fontSize: 12 }} stroke="#5e6c84" />
+              <YAxis tick={{ fontSize: 12 }} stroke={cc.axis} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: '#fff',
-                  border: '1px solid #dfe1e6',
+                  backgroundColor: cc.tooltipBg,
+                  border: `1px solid ${cc.tooltipBorder}`,
                   borderRadius: '4px',
                 }}
                 formatter={(value) => [`${value} pts`, 'Total Points']}
               />
               <ReferenceLine
                 y={avgVelocity}
-                stroke="#5e6c84"
+                stroke={cc.axis}
                 strokeDasharray="3 3"
-                label={{ value: `Avg: ${avgVelocity}`, position: 'right', fontSize: 11, fill: '#5e6c84' }}
+                label={{ value: `Avg: ${avgVelocity}`, position: 'right', fontSize: 11, fill: cc.axis }}
               />
               <Line
                 type="monotone"
                 dataKey="total"
-                stroke="#0052cc"
+                stroke={cc.primary}
                 strokeWidth={2}
-                dot={{ fill: '#0052cc', strokeWidth: 2, r: 4 }}
+                dot={{ fill: cc.primary, strokeWidth: 2, r: 4 }}
                 name="Total Points"
               />
             </LineChart>
@@ -115,30 +117,30 @@ export function TeamTrends() {
           <h4 className="team-trends__subtitle">Tickets Completed</h4>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={velocityData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#dfe1e6" />
+              <CartesianGrid strokeDasharray="3 3" stroke={cc.grid} />
               <XAxis
                 dataKey="sprintName"
                 tick={{ fontSize: 12 }}
-                stroke="#5e6c84"
+                stroke={cc.axis}
               />
-              <YAxis tick={{ fontSize: 12 }} stroke="#5e6c84" />
+              <YAxis tick={{ fontSize: 12 }} stroke={cc.axis} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: '#fff',
-                  border: '1px solid #dfe1e6',
+                  backgroundColor: cc.tooltipBg,
+                  border: `1px solid ${cc.tooltipBorder}`,
                   borderRadius: '4px',
                 }}
                 formatter={(value) => [`${value} tickets`, 'Completed']}
               />
               <ReferenceLine
                 y={avgTickets}
-                stroke="#5e6c84"
+                stroke={cc.axis}
                 strokeDasharray="3 3"
-                label={{ value: `Avg: ${avgTickets}`, position: 'right', fontSize: 11, fill: '#5e6c84' }}
+                label={{ value: `Avg: ${avgTickets}`, position: 'right', fontSize: 11, fill: cc.axis }}
               />
               <Bar
                 dataKey="devCount"
-                fill="#0052cc"
+                fill={cc.primary}
                 name="Tickets"
                 radius={[4, 4, 0, 0]}
               />

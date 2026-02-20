@@ -11,6 +11,7 @@ import {
   Line,
 } from 'recharts';
 import { useIndividualTrends, calculateDelta } from '../../hooks/useIndividualTrends';
+import { useChartColors } from '../../hooks/useChartColors';
 import './IndividualTrends.css';
 
 interface IndividualTrendsProps {
@@ -19,6 +20,7 @@ interface IndividualTrendsProps {
 
 export function IndividualTrends({ engineerId }: IndividualTrendsProps) {
   const { velocityData, currentVsPrevious } = useIndividualTrends(engineerId, 6);
+  const cc = useChartColors();
 
   if (velocityData.length < 2) {
     return (
@@ -82,17 +84,17 @@ export function IndividualTrends({ engineerId }: IndividualTrendsProps) {
           <h4 className="individual-trends__subtitle">Velocity Trend</h4>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={velocityData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#dfe1e6" />
+              <CartesianGrid strokeDasharray="3 3" stroke={cc.grid} />
               <XAxis
                 dataKey="sprintName"
                 tick={{ fontSize: 12 }}
-                stroke="#5e6c84"
+                stroke={cc.axis}
               />
-              <YAxis tick={{ fontSize: 12 }} stroke="#5e6c84" />
+              <YAxis tick={{ fontSize: 12 }} stroke={cc.axis} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: '#fff',
-                  border: '1px solid #dfe1e6',
+                  backgroundColor: cc.tooltipBg,
+                  border: `1px solid ${cc.tooltipBorder}`,
                   borderRadius: '4px',
                 }}
               />
@@ -100,18 +102,18 @@ export function IndividualTrends({ engineerId }: IndividualTrendsProps) {
               <Line
                 type="monotone"
                 dataKey="devPts"
-                stroke="#36b37e"
+                stroke={cc.dev}
                 strokeWidth={2}
-                dot={{ fill: '#36b37e', strokeWidth: 2 }}
+                dot={{ fill: cc.dev, strokeWidth: 2 }}
                 name="Dev Points"
               />
               <Line
                 type="monotone"
                 dataKey="reviewPts"
-                stroke="#0052cc"
+                stroke={cc.primary}
                 strokeWidth={2}
                 strokeDasharray="5 5"
-                dot={{ fill: '#0052cc', strokeWidth: 2 }}
+                dot={{ fill: cc.primary, strokeWidth: 2 }}
                 name="Review Points"
               />
             </LineChart>
@@ -123,17 +125,17 @@ export function IndividualTrends({ engineerId }: IndividualTrendsProps) {
           <h4 className="individual-trends__subtitle">Dev / Review Balance</h4>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={velocityData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#dfe1e6" />
+              <CartesianGrid strokeDasharray="3 3" stroke={cc.grid} />
               <XAxis
                 dataKey="sprintName"
                 tick={{ fontSize: 12 }}
-                stroke="#5e6c84"
+                stroke={cc.axis}
               />
-              <YAxis tick={{ fontSize: 12 }} stroke="#5e6c84" />
+              <YAxis tick={{ fontSize: 12 }} stroke={cc.axis} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: '#fff',
-                  border: '1px solid #dfe1e6',
+                  backgroundColor: cc.tooltipBg,
+                  border: `1px solid ${cc.tooltipBorder}`,
                   borderRadius: '4px',
                 }}
               />
@@ -141,13 +143,13 @@ export function IndividualTrends({ engineerId }: IndividualTrendsProps) {
               <Bar
                 dataKey="devPts"
                 stackId="a"
-                fill="#36b37e"
+                fill={cc.dev}
                 name="Dev Points"
               />
               <Bar
                 dataKey="reviewPts"
                 stackId="a"
-                fill="#4c9aff"
+                fill={cc.review}
                 name="Review Points"
               />
             </BarChart>

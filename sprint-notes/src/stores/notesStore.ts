@@ -1,6 +1,41 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, type StateStorage } from 'zustand/middleware';
 import type { DiscussionNotes, ActionItem, EngineerNotes, SprintNotes, EngineerTimeOff } from '../types';
+
+// Custom storage adapter that persists to data/notes.json via the Vite dev server API
+const jsonFileStorage: StateStorage = {
+  getItem: async () => {
+    try {
+      const res = await fetch('/api/notes');
+      if (!res.ok) return null;
+      return await res.text();
+    } catch {
+      return null;
+    }
+  },
+  setItem: async (_name: string, value: string) => {
+    try {
+      await fetch('/api/notes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: value,
+      });
+    } catch {
+      // API unreachable (e.g. production build) — silently ignore
+    }
+  },
+  removeItem: async () => {
+    try {
+      await fetch('/api/notes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{}',
+      });
+    } catch {
+      // ignore
+    }
+  },
+};
 
 // Helper to create empty notes for an engineer
 function createEmptyEngineerNotes(): EngineerNotes {
@@ -256,6 +291,7 @@ export const useNotesStore = create<NotesState>()(
     }),
     {
       name: 'sprint-notes-storage',
+      storage: jsonFileStorage,
     }
   )
 );

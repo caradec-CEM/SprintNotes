@@ -40,6 +40,26 @@
   animation: pulse 1.5s infinite;
 }
 
+.header__theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  transition: background-color 0.15s;
+}
+
+.header__theme-toggle:hover {
+  background: var(--color-bg-hover);
+}
+
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }

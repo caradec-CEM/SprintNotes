@@ -15,11 +15,11 @@
 }
 
 .ratio-bar__label--dev {
-  color: #006644;
+  color: var(--color-tint-green-text);
 }
 
 .ratio-bar__label--review {
-  color: #0747a6;
+  color: var(--color-tint-blue-text);
 }
 
 .ratio-bar__track {
@@ -48,11 +48,11 @@
 }
 
 .ratio-bar__segment--dev {
-  background: #36b37e;
+  background: var(--color-success);
 }
 
 .ratio-bar__segment--review {
-  background: #0052cc;
+  background: var(--color-primary);
 }
 
 .ratio-bar__empty {

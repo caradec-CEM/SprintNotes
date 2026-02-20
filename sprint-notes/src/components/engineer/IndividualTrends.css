@@ -66,21 +66,21 @@
 
 /* Card variants */
 .comparison-card--dev {
-  border-left: 3px solid #36b37e;
+  border-left: 3px solid var(--color-success);
   padding-left: var(--space-sm);
 }
 
 .comparison-card--dev .comparison-card__value {
-  color: #006644;
+  color: var(--color-tint-green-text);
 }
 
 .comparison-card--review {
-  border-left: 3px solid #0052cc;
+  border-left: 3px solid var(--color-primary);
   padding-left: var(--space-sm);
 }
 
 .comparison-card--review .comparison-card__value {
-  color: #0747a6;
+  color: var(--color-tint-blue-text);
 }
 
 .comparison-card--muted {

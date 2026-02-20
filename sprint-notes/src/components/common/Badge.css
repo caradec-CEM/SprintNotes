@@ -62,24 +62,24 @@
 }
 
 .badge--dev {
-  background-color: #e3fcef;
-  color: #006644;
+  background-color: var(--color-tint-green-bg);
+  color: var(--color-tint-green-text);
 }
 
 .badge--review {
-  background-color: #deebff;
-  color: #0747a6;
+  background-color: var(--color-tint-blue-bg);
+  color: var(--color-tint-blue-text);
 }
 
 .badge--it {
-  background-color: #fff0b3;
-  color: #172b4d;
+  background-color: var(--color-tint-yellow-bg);
+  color: var(--color-tint-yellow-text);
 }
 
 /* Carry-over badge */
 .badge--carryover {
-  background-color: #fff3e0;
-  color: #e65100;
+  background-color: var(--color-tint-carryover-bg);
+  color: var(--color-tint-carryover-text);
   margin-left: 6px;
   font-size: 0.65rem;
 }

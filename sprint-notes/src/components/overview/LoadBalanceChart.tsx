@@ -12,11 +12,14 @@ import { useSprintStore } from '../../stores/sprintStore';
 import { useNotesStore } from '../../stores/notesStore';
 import { TEAM_MEMBERS } from '../../config/team';
 import { calculateEngineerMetrics } from '../../stores/historyStore';
+import { useChartColors } from '../../hooks/useChartColors';
 import './LoadBalanceChart.css';
 
 export function LoadBalanceChart() {
   const currentSprint = useSprintStore((state) => state.currentSprint);
   const getEngineerTimeOff = useNotesStore((state) => state.getEngineerTimeOff);
+
+  const cc = useChartColors();
 
   if (!currentSprint) {
     return <div className="load-balance-chart__empty">No sprint data loaded</div>;
@@ -44,8 +47,8 @@ export function LoadBalanceChart() {
           layout="vertical"
           margin={{ top: 10, right: 30, left: 60, bottom: 10 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#dfe1e6" />
-          <XAxis type="number" tick={{ fontSize: 12 }} stroke="#5e6c84" />
+          <CartesianGrid strokeDasharray="3 3" stroke={cc.grid} />
+          <XAxis type="number" tick={{ fontSize: 12 }} stroke={cc.axis} />
           <YAxis
             type="category"
             dataKey="name"
@@ -54,24 +57,24 @@ export function LoadBalanceChart() {
               const item = data.find((d) => d.name === payload.value);
               return (
                 <g transform={`translate(${x},${y})`}>
-                  <text x={0} y={0} dy={4} textAnchor="end" fill="#5e6c84" fontSize={12}>
+                  <text x={0} y={0} dy={4} textAnchor="end" fill={cc.axis} fontSize={12}>
                     {payload.value}
                   </text>
                   {item?.ptoDays && item.ptoDays > 0 && (
-                    <text x={0} y={12} textAnchor="end" fill="#b38600" fontSize={10}>
+                    <text x={0} y={12} textAnchor="end" fill={cc.ptoLabel} fontSize={10}>
                       {item.ptoLabel}
                     </text>
                   )}
                 </g>
               );
             }}
-            stroke="#5e6c84"
+            stroke={cc.axis}
             width={80}
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: '#fff',
-              border: '1px solid #dfe1e6',
+              backgroundColor: cc.tooltipBg,
+              border: `1px solid ${cc.tooltipBorder}`,
               borderRadius: '4px',
             }}
             formatter={(value, name) => [
@@ -84,8 +87,8 @@ export function LoadBalanceChart() {
               value === 'devPts' ? 'Dev Points' : 'Review Points'
             }
           />
-          <Bar dataKey="devPts" stackId="a" fill="#36b37e" name="devPts" />
-          <Bar dataKey="reviewPts" stackId="a" fill="#4c9aff" name="reviewPts" />
+          <Bar dataKey="devPts" stackId="a" fill={cc.dev} name="devPts" />
+          <Bar dataKey="reviewPts" stackId="a" fill={cc.review} name="reviewPts" />
         </BarChart>
       </ResponsiveContainer>
     </div>

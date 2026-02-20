@@ -41,19 +41,19 @@
 }
 
 .engineer-panel__dev-pts {
-  color: #006644;
+  color: var(--color-tint-green-text);
   font-weight: 500;
 }
 
 .engineer-panel__review-pts {
-  color: #0747a6;
+  color: var(--color-tint-blue-text);
   font-weight: 500;
 }
 
 .engineer-panel__pto-badge {
   display: inline-block;
-  background: #fff0b3;
-  color: #172b4d;
+  background: var(--color-tint-yellow-bg);
+  color: var(--color-tint-yellow-text);
   font-size: var(--font-size-xs);
   font-weight: 600;
   padding: 2px 8px;
