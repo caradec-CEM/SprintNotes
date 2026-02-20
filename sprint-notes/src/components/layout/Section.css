@@ -1,8 +1,9 @@
 .section {
   background: var(--color-bg-card);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
+  transition: box-shadow var(--transition-base);
 }
 
 .section__header {
@@ -42,7 +43,7 @@
   font-size: var(--font-size-md);
   font-weight: 600;
   margin: 0;
-  transition: color 0.15s;
+  transition: color var(--transition-fast);
 }
 
 .section__actions {
@@ -52,6 +53,15 @@
 
 .section__content {
   padding: var(--space-md);
+}
+
+/* Flush variant: content extends edge-to-edge (for tables, lists, etc.) */
+.section--flush .section__content {
+  padding: 0;
+}
+
+.section--flush .section__header {
+  border-bottom: none;
 }
 
 @media print {

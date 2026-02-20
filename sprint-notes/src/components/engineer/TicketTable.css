@@ -12,46 +12,72 @@
 .ticket-table td {
   padding: var(--space-sm) var(--space-md);
   text-align: left;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent);
 }
 
 .ticket-table th {
-  font-weight: 600;
+  font-weight: 500;
   color: var(--color-text-subtle);
-  background: var(--color-bg);
+  background: color-mix(in srgb, var(--color-bg) 40%, var(--color-bg-card));
   white-space: nowrap;
+  font-size: var(--font-size-xs);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .ticket-table th.sortable {
   cursor: pointer;
   user-select: none;
+  transition: color var(--transition-fast), background-color var(--transition-fast);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
 }
 
 .ticket-table th.sortable:hover {
   color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+}
+
+.ticket-table th.sortable:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-focus-ring);
+}
+
+/* Active sort column — subtle underline accent */
+.ticket-table th.sortable.sort-active {
+  color: var(--color-primary);
+  box-shadow: inset 0 -2px 0 var(--color-primary);
+}
+
+.ticket-table tbody tr {
+  transition: background-color var(--transition-fast);
 }
 
 .ticket-table tbody tr:hover {
-  background: var(--color-bg-hover);
+  background: color-mix(in srgb, var(--color-bg-hover) 70%, transparent);
+}
+
+.ticket-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 /* Platform grouping */
 .platform-group-header {
-  background: var(--color-bg);
-  border-top: 2px solid var(--color-border);
-  border-bottom: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-bg) 50%, var(--color-bg-card));
 }
 
 .platform-group-header td {
-  padding: var(--space-sm) var(--space-md);
-  font-size: var(--font-size-sm);
+  padding: var(--space-xs) var(--space-md);
+  font-size: var(--font-size-xs);
   color: var(--color-text-subtle);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 40%, transparent);
 }
 
 .platform-group-header:hover {
-  background: var(--color-bg) !important;
+  background: color-mix(in srgb, var(--color-bg) 50%, var(--color-bg-card)) !important;
 }
 
 .ticket-table .summary-cell {
@@ -65,7 +91,7 @@
   text-align: center;
   font-weight: 700;
   font-size: var(--font-size-md);
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   min-width: 36px;
 }
 
@@ -101,7 +127,7 @@
 }
 
 .ticket-table__empty {
-  padding: var(--space-lg);
+  padding: var(--space-xl) var(--space-lg);
   text-align: center;
   color: var(--color-text-subtle);
 }
@@ -115,8 +141,8 @@
 .person--highlight {
   background: var(--color-tint-blue-bg);
   color: var(--color-tint-blue-text);
-  padding: 2px 6px;
-  border-radius: 3px;
+  padding: 2px 8px;
+  border-radius: var(--radius-md);
   font-weight: 600;
 }
 
@@ -127,33 +153,32 @@
 
 .label-tag {
   display: inline-block;
-  padding: 3px 8px;
-  border-radius: 3px;
+  padding: 2px 8px;
+  border-radius: var(--radius-md);
   font-size: var(--font-size-xs);
   margin: 2px;
   white-space: nowrap;
   font-weight: 600;
+  transition: opacity var(--transition-fast);
 }
 
 /* Product labels - Blue */
 .label-tag--product {
   background: var(--color-tint-blue-bg);
   color: var(--color-tint-blue-text);
-  border: 1px solid var(--color-tint-blue-text);
 }
 
 /* Platform labels - Purple */
 .label-tag--platform {
   background: var(--color-tint-purple-bg);
   color: var(--color-tint-purple-text);
-  border: 1px solid var(--color-tint-purple-text);
 }
 
 /* Misc labels - Gray (collapsed count) */
 .label-tag--misc {
   background: var(--color-bg-hover);
   color: var(--color-text-subtle);
-  border: 1px solid var(--color-border);
+  border: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent);
   font-weight: 400;
   cursor: help;
 }
@@ -164,14 +189,18 @@
   cursor: default;
 }
 
-.duration-cell[title] {
+.duration-cell .tooltip-trigger {
   cursor: help;
 }
 
-.duration-cell > span {
+.duration-cell .duration--fast,
+.duration-cell .duration--medium,
+.duration-cell .duration--slow,
+.duration-cell .duration--muted,
+.duration-cell .duration--none {
   display: inline-block;
-  padding: 3px 8px;
-  border-radius: 3px;
+  padding: 2px 8px;
+  border-radius: var(--radius-md);
   font-size: 0.85rem;
   font-weight: 600;
 }
@@ -227,6 +256,95 @@
 
 .points-change--down {
   color: var(--color-tint-red-text);
+}
+
+/* Expandable rows */
+.ticket-row--expandable {
+  cursor: pointer;
+}
+
+.ticket-row--expanded {
+  border-left: 3px solid var(--color-primary);
+}
+
+.ticket-row--expanded > td:first-child {
+  padding-left: calc(var(--space-md) - 3px);
+}
+
+/* Changelog panel */
+.changelog-row > td {
+  padding: 0 !important;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.changelog-panel {
+  background: color-mix(in srgb, var(--color-bg) 60%, var(--color-bg-card));
+  padding: var(--space-md) var(--space-lg);
+  display: flex;
+  gap: var(--space-xl);
+}
+
+.changelog-group {
+  flex: 1;
+  min-width: 0;
+}
+
+.changelog-group__label {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--color-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--space-sm);
+}
+
+.changelog-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.changelog-entry {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: var(--font-size-xs);
+  line-height: 1.6;
+}
+
+.changelog-entry__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-text-subtle);
+  flex-shrink: 0;
+}
+
+.changelog-entry__date {
+  color: var(--color-text-subtle);
+  white-space: nowrap;
+  min-width: 120px;
+}
+
+.changelog-entry__field {
+  color: var(--color-text-subtle);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.changelog-entry__value {
+  color: var(--color-text);
+}
+
+.changelog-entry__arrow {
+  color: var(--color-text-subtle);
+  margin: 0 2px;
+}
+
+.changelog-empty {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+  padding: var(--space-sm) 0;
 }
 
 @media print {

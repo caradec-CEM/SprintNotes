@@ -68,7 +68,7 @@ export function TeamOverview() {
 
       <div className="team-overview__content">
         {/* Summary Table */}
-        <Section title="Team Summary">
+        <Section title="Team Summary" flush>
           <SummaryTable />
         </Section>
 

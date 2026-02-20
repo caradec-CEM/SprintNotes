@@ -62,7 +62,16 @@ export function EngineerPanel({ engineerId }: EngineerPanelProps) {
         </Section>
 
         {/* Tickets */}
-        <Section title="Tickets" defaultCollapsed={false}>
+        <Section
+          title="Tickets"
+          defaultCollapsed={false}
+          flush
+          actions={
+            <span className="engineer-panel__ticket-count">
+              {allTickets.length}
+            </span>
+          }
+        >
           <TicketTable
             tickets={allTickets}
             engineerId={engineerId}

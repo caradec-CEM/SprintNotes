@@ -6,6 +6,8 @@ interface SectionProps {
   defaultCollapsed?: boolean;
   children: ReactNode;
   actions?: ReactNode;
+  /** When true, removes content padding so children (e.g. tables) extend edge-to-edge */
+  flush?: boolean;
 }
 
 export function Section({
@@ -13,11 +15,18 @@ export function Section({
   defaultCollapsed = false,
   children,
   actions,
+  flush = false,
 }: SectionProps) {
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
 
+  const className = [
+    'section',
+    collapsed ? 'section--collapsed' : '',
+    flush ? 'section--flush' : '',
+  ].filter(Boolean).join(' ');
+
   return (
-    <section className={`section ${collapsed ? 'section--collapsed' : ''}`}>
+    <section className={className}>
       <header className="section__header">
         <button
           className="section__toggle no-print"
