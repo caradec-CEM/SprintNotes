@@ -1,1 +1,42 @@
-{}
+{
+  "state": {
+    "sprintNotes": {
+      "958": {
+        "sprintId": "958",
+        "lastModified": 1771617959915,
+        "engineers": {},
+        "capacity": {
+          "defaultWorkingDays": 10,
+          "teamHolidays": 6,
+          "effectiveSprintDays": 4
+        }
+      },
+      "1026": {
+        "sprintId": "1026",
+        "lastModified": 1771620900170,
+        "engineers": {
+          "efron": {
+            "discussion": {
+              "sprintFeedback": "Lots of large tasks",
+              "longerThanExpected": "",
+              "blockers": "",
+              "other": ""
+            },
+            "actionItems": []
+          }
+        },
+        "timeOff": {
+          "erick": {
+            "ptoDays": 1,
+            "workingDays": 9
+          },
+          "wlad": {
+            "ptoDays": 1,
+            "workingDays": 9
+          }
+        }
+      }
+    }
+  },
+  "version": 0
+}

@@ -56,3 +56,27 @@ Use the existing time-off tracking (`EngineerTimeOff`) to compare expected capac
   - Color coding: green (80-110%), yellow (110-130% or < 70%), red (> 130%)
 - Flag engineers who are consistently over-allocated across recent sprints
 - Requires sprint history data (already available via `SprintHistory`) for baseline averages
+
+---
+
+## UI/UX Audit Fixes
+**Source:** UI/UX architect review (Feb 2026)
+
+### P0 — Dark Mode Fixes (broken in dark mode)
+- **Chart tooltip/legend text color not set** — Recharts tooltip and legend text inherits browser default, invisible on dark backgrounds. Set `color: var(--color-text)` on `.recharts-tooltip-wrapper` and legend items.
+- **Sprint selector dropdown arrow SVG hardcoded** — The `<select>` dropdown arrow uses a hardcoded light-mode color in the `background-image` SVG. Swap to `var(--color-text)` or encode dynamically.
+- **ActionItems input missing background/color** — The text input in ActionItems doesn't set `background` or `color`, so it inherits the wrong values in dark mode.
+- **Focus ring color hardcoded** — `:focus-visible` outlines use hardcoded `rgba(0, 82, 204, 0.6)` instead of a CSS variable. Define `--color-focus-ring` and use it everywhere.
+
+### P1 — Visual / UX Fixes
+- **Type badge contrast fails WCAG AA** — Story (green-on-green-tint) and Task (blue-on-blue-tint) badges have insufficient contrast ratios. Darken the text color or adjust tint backgrounds.
+- **MetricCard capacity variant bug** — Capacity utilization thresholds use `warning`/`warning` instead of `warning`/`danger` for the over-allocated state.
+- **DevReviewRatioBar label colors don't match segment colors** — The text labels ("Dev" / "Review") use generic colors that don't match the bar segment fills. Align label colors with `--color-chart-dev` and `--color-chart-review`.
+- **Opacity-based muting hurts accessibility** — `duration--muted` and similar classes use `opacity: 0.7` which can make text hard to read. Use a dedicated muted text color variable instead.
+
+### P2 — Polish
+- **No responsive breakpoints** — The app has no `@media` breakpoints; tables and panels overflow on narrow viewports. Add breakpoints for tablet (768px) and mobile (480px).
+- **Duplicate PTO editing surface** — PTO days can be edited in both the SummaryTable and the TimeOffEditor. Consolidate to one location to avoid confusion.
+- **Emoji theme toggle** — The dark mode toggle uses emoji (sun/moon) instead of SVG icons. Replace with proper icon components for consistent rendering across platforms.
+- **Missing ARIA roles on tab bar** — The engineer/team tab navigation lacks `role="tablist"`, `role="tab"`, and `aria-selected` attributes for screen reader support.
+- **Theme transition flash** — Add `transition: background-color 0.2s, color 0.2s` on `body` or `:root` to smooth the light-to-dark switch.
