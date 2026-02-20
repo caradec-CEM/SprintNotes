@@ -147,9 +147,16 @@ export interface JiraChangelog {
   histories: JiraChangelogHistory[];
 }
 
+export interface StatusSpan {
+  entered: string;    // ISO date of entering the status
+  exited: string | null; // ISO date of exiting (null if still active)
+  days: number;       // Business days for this span
+}
+
 export interface StatusDuration {
   days: number;       // Business days (weekdays only)
   isActive: boolean;  // Currently in this status
+  spans: StatusSpan[];  // Individual time spans in this status
 }
 
 export interface PointChange {

@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import type { Ticket } from '../../types';
 import { TypeBadge, PriorityBadge, TicketLink } from '../common';
-import { formatDuration, getDurationClass } from '../../utils/dateUtils';
+import { formatDuration, getDurationClass, formatStatusTooltip } from '../../utils/dateUtils';
 import { getLabelDisplayName, getPrimaryPlatform } from '../../config/labels';
 import './TicketTable.css';
 
@@ -177,7 +177,10 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
               <td>
                 <PriorityBadge priority={ticket.priority} />
               </td>
-              <td className="duration-cell">
+              <td
+                className="duration-cell"
+                title={ticket.inProgressDuration?.spans ? formatStatusTooltip(ticket.inProgressDuration.spans) : undefined}
+              >
                 <span className={
                   isCurrentDeveloper(ticket.developers)
                     ? getDurationClass(ticket.inProgressDuration?.days, ticket.points)
@@ -186,7 +189,10 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
                   {formatDuration(ticket.inProgressDuration?.days, ticket.inProgressDuration?.isActive)}
                 </span>
               </td>
-              <td className="duration-cell">
+              <td
+                className="duration-cell"
+                title={ticket.inReviewDuration?.spans ? formatStatusTooltip(ticket.inReviewDuration.spans) : undefined}
+              >
                 <span className={
                   isCurrentReviewer(ticket.reviewers)
                     ? getDurationClass(ticket.inReviewDuration?.days, ticket.points)
@@ -195,12 +201,16 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
                   {formatDuration(ticket.inReviewDuration?.days, ticket.inReviewDuration?.isActive)}
                 </span>
               </td>
-              <td className={`points-cell ${getPointsClass(ticket.points)}`}>
+              <td
+                className={`points-cell ${getPointsClass(ticket.points)}${ticket.pointChange ? ' points-cell--changed' : ''}`}
+                title={ticket.pointChange
+                  ? `Changed from ${ticket.pointChange.from} → ${ticket.pointChange.to}`
+                  : undefined}
+              >
                 {ticket.points || '-'}
                 {ticket.pointChange && (
                   <span
                     className={ticket.pointChange.to > ticket.pointChange.from ? 'points-change--up' : 'points-change--down'}
-                    title={`Changed from ${ticket.pointChange.from}`}
                   >
                     {ticket.pointChange.to > ticket.pointChange.from ? '▲' : '▼'}
                   </span>

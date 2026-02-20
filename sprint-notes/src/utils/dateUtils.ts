@@ -1,4 +1,4 @@
-import type { JiraChangelog, StatusDuration, PointChange } from '../types';
+import type { JiraChangelog, StatusDuration, StatusSpan, PointChange } from '../types';
 
 /**
  * Calculate business days (weekdays only) between two timestamps
@@ -145,6 +145,7 @@ export function calculateStatusDuration(
   let totalDays = 0;
   let currentlyInStatus = false;
   let lastEntryTime: string | null = null;
+  const spans: StatusSpan[] = [];
 
   // Sort histories chronologically
   const sortedHistories = [...changelog.histories].sort(
@@ -178,6 +179,7 @@ export function calculateStatusDuration(
           }
           const days = calculateBusinessDays(lastEntryTime, history.created, enableDebug);
           totalDays += days;
+          spans.push({ entered: lastEntryTime, exited: history.created, days });
           lastEntryTime = null;
           currentlyInStatus = false;
         }
@@ -191,10 +193,12 @@ export function calculateStatusDuration(
     if (enableDebug) {
       console.log(`[${issueKey}] Still in status, calculating to now`);
     }
-    totalDays += calculateBusinessDays(lastEntryTime, new Date().toISOString(), enableDebug);
+    const days = calculateBusinessDays(lastEntryTime, new Date().toISOString(), enableDebug);
+    totalDays += days;
+    spans.push({ entered: lastEntryTime, exited: null, days });
   }
 
-  return totalDays > 0 ? { days: totalDays, isActive: currentlyInStatus } : undefined;
+  return totalDays > 0 ? { days: totalDays, isActive: currentlyInStatus, spans } : undefined;
 }
 
 /**
@@ -236,6 +240,21 @@ export function extractPointChange(
   }
 
   return undefined;
+}
+
+/** Format status spans into a hover tooltip string */
+export function formatStatusTooltip(spans: StatusSpan[]): string {
+  if (spans.length === 0) return '';
+  const fmt = (iso: string) => {
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      + ' ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  };
+  return spans.map((s) => {
+    const entered = fmt(s.entered);
+    const exited = s.exited ? fmt(s.exited) : 'now';
+    return `${entered} \u2013 ${exited} (${s.days}d)`;
+  }).join('\n');
 }
 
 /** Format a sprint date range compactly: "Jan 6 – Jan 17, 2025" */

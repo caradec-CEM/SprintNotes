@@ -161,6 +161,11 @@
 /* Duration cell styling */
 .duration-cell {
   text-align: center;
+  cursor: default;
+}
+
+.duration-cell[title] {
+  cursor: help;
 }
 
 .duration-cell > span {
@@ -197,6 +202,11 @@
   color: var(--color-tint-red-text);
 }
 
+/* Points cell with change indicator */
+.points-cell--changed {
+  cursor: help;
+}
+
 /* Point change indicators — zero-width wrapper so arrow doesn't shift the number */
 .points-change--up,
 .points-change--down {
@@ -206,7 +216,6 @@
   margin-left: 2px;
   font-size: 0.6rem;
   font-weight: 700;
-  cursor: help;
   position: relative;
   top: -1px;
   vertical-align: middle;
