@@ -20,7 +20,7 @@ export interface EngineerData {
 export function useEngineerData(engineerId: string): EngineerData {
   const currentSprint = useSprintStore((state) => state.currentSprint);
   const selectedSprintId = useSprintStore((state) => state.selectedSprintId);
-  const getEngineerNotes = useNotesStore((state) => state.getEngineerNotes);
+  const sprintNotes = useNotesStore((state) => state.sprintNotes);
 
   return useMemo(() => {
     const tickets = currentSprint?.tickets ?? [];
@@ -78,17 +78,17 @@ export function useEngineerData(engineerId: string): EngineerData {
     };
 
     // Get notes
-    const notes = selectedSprintId
-      ? getEngineerNotes(selectedSprintId, engineerId)
-      : {
-          discussion: {
-            sprintFeedback: '',
-            longerThanExpected: '',
-            blockers: '',
-            other: '',
-          },
-          actionItems: [],
-        };
+    const emptyNotes: EngineerNotes = {
+      discussion: {
+        sprintFeedback: '',
+        longerThanExpected: '',
+        blockers: '',
+        other: '',
+      },
+      actionItems: [],
+    };
+    const sprint = selectedSprintId ? sprintNotes[selectedSprintId] : undefined;
+    const notes = sprint?.engineers?.[engineerId] ?? emptyNotes;
 
     return {
       devTickets,
@@ -98,5 +98,5 @@ export function useEngineerData(engineerId: string): EngineerData {
       metrics,
       notes,
     };
-  }, [currentSprint, selectedSprintId, engineerId, getEngineerNotes]);
+  }, [currentSprint, selectedSprintId, engineerId, sprintNotes]);
 }
