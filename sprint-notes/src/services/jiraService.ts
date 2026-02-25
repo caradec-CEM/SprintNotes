@@ -249,11 +249,18 @@ export async function fetchSprints(
 }
 
 // Fetch issues for a sprint using Search API
-export async function fetchSprintIssues(sprintId: string): Promise<Ticket[]> {
+export async function fetchSprintIssues(sprintId: string, sprintState: string = 'closed'): Promise<Ticket[]> {
   const fields = JIRA_CONFIG.issueFields;
+  const isActive = sprintState === 'active';
+
+  // Active sprint: only exclude tickets moved to future sprints
+  // Closed/other sprints: exclude tickets carried over to open or future sprints
+  const carryOverFilter = isActive
+    ? 'sprint NOT IN futureSprints()'
+    : 'sprint NOT IN openSprints() AND sprint NOT IN futureSprints()';
 
   // Fetch CP tickets (completed, not carried over)
-  const cpJql = `project = CP AND sprint = ${sprintId} AND sprint NOT IN openSprints() AND statusCategory = Done`;
+  const cpJql = `project = CP AND sprint = ${sprintId} AND ${carryOverFilter} AND statusCategory = Done`;
   const cpParams = new URLSearchParams({
     jql: cpJql,
     fields: fields.join(','),
@@ -264,7 +271,7 @@ export async function fetchSprintIssues(sprintId: string): Promise<Ticket[]> {
   const cpData = await jiraFetch<{ issues: JiraIssueRaw[]; total: number }>(cpEndpoint);
 
   // Fetch IT tickets (completed, not carried over, excluding canceled)
-  const itJql = `project = IT AND sprint = ${sprintId} AND sprint NOT IN openSprints() AND statusCategory = Done AND status != "IT - Canceled"`;
+  const itJql = `project = IT AND sprint = ${sprintId} AND ${carryOverFilter} AND statusCategory = Done AND status != "IT - Canceled"`;
   const itParams = new URLSearchParams({
     jql: itJql,
     fields: fields.join(','),
@@ -350,14 +357,14 @@ export async function fetchSprintData(sprintId: string): Promise<{
   tickets: Ticket[];
 } | null> {
   try {
-    const [sprint, tickets] = await Promise.all([
-      fetchSprintById(sprintId),
-      fetchSprintIssues(sprintId),
-    ]);
+    // Fetch sprint first so we know its state for JQL filtering
+    const sprint = await fetchSprintById(sprintId);
 
     if (!sprint) {
       throw new Error(`Sprint ${sprintId} not found`);
     }
+
+    const tickets = await fetchSprintIssues(sprintId, sprint.state);
 
     return { sprint, tickets };
   } catch (error) {
