@@ -285,23 +285,21 @@ export async function fetchSprints(
 }
 
 // Fetch issues for a sprint using Search API
-// sprintEndDate filters out tickets resolved after the sprint ended (carry-overs completed later)
-export async function fetchSprintIssues(sprintId: string, sprintEndDate?: string): Promise<Ticket[]> {
+export async function fetchSprintIssues(sprintId: string, sprintState: string = 'closed'): Promise<Ticket[]> {
   const fields = JIRA_CONFIG.issueFields;
+  const isActive = sprintState === 'active';
 
-  // Build resolution date filter: only include tickets resolved before sprint end + 1 day buffer
-  // This prevents counting carry-over tickets that were completed in a later sprint
-  let resolutionFilter = '';
-  if (sprintEndDate) {
-    // Add 1 day buffer for timezone edge cases
-    const endDate = new Date(sprintEndDate);
-    endDate.setDate(endDate.getDate() + 1);
-    const endStr = endDate.toISOString().split('T')[0];
-    resolutionFilter = ` AND resolutiondate <= "${endStr}"`;
-  }
+  // Active sprint: only exclude tickets moved to future sprints
+  // Closed/other sprints: exclude tickets carried over to open or future sprints
+  const carryOverFilter = isActive
+    ? 'sprint NOT IN futureSprints()'
+    : 'sprint NOT IN openSprints() AND sprint NOT IN futureSprints()';
 
-  // Fetch CP tickets (completed, not carried over)
-  const cpJql = `project = CP AND sprint = ${sprintId} AND statusCategory = Done${resolutionFilter}`;
+  // Terminal statuses that should never count as completed work
+  const excludeStatuses = 'status NOT IN ("Will Not Implement", "IT - Canceled")';
+
+  // Fetch CP tickets (completed, not carried over, excluding terminal statuses)
+  const cpJql = `project = CP AND sprint = ${sprintId} AND ${carryOverFilter} AND statusCategory = Done AND ${excludeStatuses}`;
   const cpParams = new URLSearchParams({
     jql: cpJql,
     fields: fields.join(','),
@@ -311,8 +309,8 @@ export async function fetchSprintIssues(sprintId: string, sprintEndDate?: string
   const cpEndpoint = `${JIRA_ENDPOINTS.search}?${cpParams.toString()}`;
   const cpData = await jiraFetch<{ issues: JiraIssueRaw[]; total: number }>(cpEndpoint);
 
-  // Fetch IT tickets (completed, not carried over, excluding canceled)
-  const itJql = `project = IT AND sprint = ${sprintId} AND statusCategory = Done AND status != "IT - Canceled"${resolutionFilter}`;
+  // Fetch IT tickets (completed, not carried over, excluding terminal statuses)
+  const itJql = `project = IT AND sprint = ${sprintId} AND ${carryOverFilter} AND statusCategory = Done AND ${excludeStatuses}`;
   const itParams = new URLSearchParams({
     jql: itJql,
     fields: fields.join(','),
@@ -326,7 +324,15 @@ export async function fetchSprintIssues(sprintId: string, sprintEndDate?: string
   const allIssues = [...cpData.issues, ...itData.issues];
   const tickets = allIssues.map(raw => transformIssue(raw, sprintId));
 
-  return tickets;
+  // Only count a ticket in the last sprint it appeared in (highest sprint ID).
+  // This prevents double-counting when a ticket carries over to a later sprint.
+  const currentId = parseInt(sprintId);
+  return tickets.filter((_, index) => {
+    const sprintField = allIssues[index].fields.customfield_10020;
+    if (!Array.isArray(sprintField) || sprintField.length <= 1) return true;
+    const maxSprintId = Math.max(...sprintField.map(s => s.id));
+    return maxSprintId <= currentId;
+  });
 }
 
 // Fetch a single sprint by ID
@@ -347,13 +353,14 @@ export async function fetchSprintData(sprintId: string): Promise<{
   tickets: Ticket[];
 } | null> {
   try {
-    // Fetch sprint first to get end date for filtering
+    // Fetch sprint first so we know its state for JQL filtering
     const sprint = await fetchSprintById(sprintId);
+
     if (!sprint) {
       throw new Error(`Sprint ${sprintId} not found`);
     }
 
-    const tickets = await fetchSprintIssues(sprintId, sprint.endDate);
+    const tickets = await fetchSprintIssues(sprintId, sprint.state);
     return { sprint, tickets };
   } catch (error) {
     console.error('Failed to fetch sprint data:', error);

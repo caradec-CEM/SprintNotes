@@ -41,8 +41,11 @@ export function TeamOverview() {
   }
 
   const cpTickets = currentSprint.tickets.filter(t => t.project === 'CP');
-  const totalTickets = cpTickets.length;
+  const itTickets = currentSprint.tickets.filter(t => t.project === 'IT');
+  const totalTickets = itTickets.length;
   const totalPoints = cpTickets.reduce((sum, t) => sum + t.points, 0);
+
+
   return (
     <div className="team-overview">
       {/* Sprint Header */}
