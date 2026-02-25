@@ -56,10 +56,11 @@ export function createSprintSummary(
     engineers[member.id] = calculateEngineerMetrics(member.id, tickets);
   }
 
-  // Calculate team-level totals directly from CP tickets only
+  // Points from CP (story-point based), ticket count from IT (ticket-based)
   const cpTickets = tickets.filter(t => t.project === 'CP');
+  const itTickets = tickets.filter(t => t.project === 'IT');
   const totalPoints = cpTickets.reduce((sum, t) => sum + t.points, 0);
-  const totalTickets = cpTickets.length;
+  const totalTickets = itTickets.length;
 
   return {
     id: sprintId,

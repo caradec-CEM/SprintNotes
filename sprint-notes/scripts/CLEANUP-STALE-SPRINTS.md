@@ -53,25 +53,18 @@ node scripts/cleanup-stale-sprint-data.cjs --sprint 55 --execute --limit 3
 - Script created with full analysis logic
 - Fixed `.env` parser — API token contains `=` signs, `split('=')` was truncating it (183 vs 192 chars). Fixed to use `indexOf('=')`.
 - Sprint lookup works (confirmed: "Engineering Sprint 55", ID 1026)
-
-### Known Issue: `expand: changelog` timeout
-The `fetchTerminalTicketsInSprint()` function uses `expand: changelog` in the JQL search, which causes the JIRA API to hang/timeout when there are many tickets. The request to Sprint 55 never returned after 10+ minutes.
+- **Fixed changelog timeout** — removed `expand: changelog` from JQL search; changelogs are now fetched individually per ticket via `GET /rest/api/3/issue/{key}/changelog` (with progress logging)
 
 ### Next Steps
 
-1. **Fix the changelog fetch strategy** — Don't use `expand: changelog` in the search query. Instead:
-   - Fetch tickets WITHOUT changelog expansion (fast)
-   - Then fetch each ticket's changelog individually via `GET /rest/api/3/issue/{key}/changelog`
-   - This is what `getFullChangelog()` already does — just need to always use it
+1. **Run dry-run on Sprint 55** to see the full scope
 
-2. **Run dry-run on Sprint 55** to see the full scope
-
-3. **Run `--probe`** to test which API approach works for sprint removal:
+2. **Run `--probe`** to test which API approach works for sprint removal:
    - Approach 1: `PUT` with `customfield_10020: [{id: 123}, ...]`
    - Approach 2: `PUT` with `customfield_10020: [123, ...]`
    - Approach 3: `POST /rest/agile/1.0/backlog/issue`
 
-4. **Execute sprint-by-sprint**, working backwards from Sprint 55 toward the oldest affected sprint
+3. **Execute sprint-by-sprint**, working backwards from Sprint 55 toward the oldest affected sprint
 
 ### Also Note
 The original approach tried to query ALL cancelled tickets globally — returned 30,000+ tickets across all projects. The sprint-by-sprint approach is much more targeted.

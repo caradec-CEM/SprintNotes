@@ -259,8 +259,11 @@ export async function fetchSprintIssues(sprintId: string, sprintState: string = 
     ? 'sprint NOT IN futureSprints()'
     : 'sprint NOT IN openSprints() AND sprint NOT IN futureSprints()';
 
-  // Fetch CP tickets (completed, not carried over)
-  const cpJql = `project = CP AND sprint = ${sprintId} AND ${carryOverFilter} AND statusCategory = Done`;
+  // Terminal statuses that should never count as completed work
+  const excludeStatuses = 'status NOT IN ("Will Not Implement", "IT - Canceled")';
+
+  // Fetch CP tickets (completed, not carried over, excluding terminal statuses)
+  const cpJql = `project = CP AND sprint = ${sprintId} AND ${carryOverFilter} AND statusCategory = Done AND ${excludeStatuses}`;
   const cpParams = new URLSearchParams({
     jql: cpJql,
     fields: fields.join(','),
@@ -270,8 +273,8 @@ export async function fetchSprintIssues(sprintId: string, sprintState: string = 
   const cpEndpoint = `${JIRA_ENDPOINTS.search}?${cpParams.toString()}`;
   const cpData = await jiraFetch<{ issues: JiraIssueRaw[]; total: number }>(cpEndpoint);
 
-  // Fetch IT tickets (completed, not carried over, excluding canceled)
-  const itJql = `project = IT AND sprint = ${sprintId} AND ${carryOverFilter} AND statusCategory = Done AND status != "IT - Canceled"`;
+  // Fetch IT tickets (completed, not carried over, excluding terminal statuses)
+  const itJql = `project = IT AND sprint = ${sprintId} AND ${carryOverFilter} AND statusCategory = Done AND ${excludeStatuses}`;
   const itParams = new URLSearchParams({
     jql: itJql,
     fields: fields.join(','),
@@ -285,58 +288,15 @@ export async function fetchSprintIssues(sprintId: string, sprintState: string = 
   const allIssues = [...cpData.issues, ...itData.issues];
   const tickets = allIssues.map(raw => transformIssue(raw, sprintId));
 
-  // TEMPORARY: Collect all unique labels for analysis
-  const allLabels = new Set<string>();
-  allIssues.forEach(issue => {
-    const labels = issue.fields.labels || [];
-    labels.forEach(label => allLabels.add(label));
+  // Only count a ticket in the last sprint it appeared in (highest sprint ID).
+  // This prevents double-counting when a ticket carries over to a later sprint.
+  const currentId = parseInt(sprintId);
+  return tickets.filter((_, index) => {
+    const sprintField = allIssues[index].fields.customfield_10020;
+    if (!Array.isArray(sprintField) || sprintField.length <= 1) return true;
+    const maxSprintId = Math.max(...sprintField.map(s => s.id));
+    return maxSprintId <= currentId;
   });
-  if (allLabels.size > 0) {
-    console.log(`\n=== LABELS IN SPRINT ${sprintId} ===`);
-    console.log(Array.from(allLabels).sort().join(', '));
-    console.log('================\n');
-  }
-
-  // Debug logging
-  const cpTickets = tickets.filter(t => t.project === 'CP');
-  const itTickets = tickets.filter(t => t.project === 'IT');
-  const cpPoints = cpTickets.reduce((sum, t) => sum + t.points, 0);
-  const itPoints = itTickets.reduce((sum, t) => sum + t.points, 0);
-
-  console.log(`[JIRA] Sprint ${sprintId} Summary:`);
-  console.log(`  CP: ${cpData.total} issues, ${cpPoints} points`);
-  console.log(`  IT: ${itData.total} issues, ${itPoints} points`);
-  console.log(`  Total: ${cpData.total + itData.total} issues, ${cpPoints + itPoints} points`);
-  console.log(`\nCP JQL: ${cpJql}`);
-  console.log(`IT JQL: ${itJql}`);
-
-  // Check what we'd get WITHOUT the openSprints filter
-  const cpAllJql = `project = CP AND sprint = ${sprintId} AND statusCategory = Done`;
-  const cpAllParams = new URLSearchParams({
-    jql: cpAllJql,
-    fields: 'key,summary,customfield_10031',
-    maxResults: '200',
-  });
-  const cpAllEndpoint = `${JIRA_ENDPOINTS.search}?${cpAllParams.toString()}`;
-  const cpAllData = await jiraFetch<{ issues: JiraIssueRaw[]; total: number }>(cpAllEndpoint);
-  const cpAllPoints = cpAllData.issues.reduce((sum, issue) => sum + (issue.fields.customfield_10031 ?? 0), 0);
-
-  if (cpAllData.total > cpData.total) {
-    console.log(`\n⚠️  DIFFERENCE DETECTED:`);
-    console.log(`  WITHOUT openSprints filter: ${cpAllData.total} CP issues, ${cpAllPoints} points`);
-    console.log(`  WITH openSprints filter: ${cpData.total} CP issues, ${cpPoints} points`);
-    console.log(`  EXCLUDED: ${cpAllData.total - cpData.total} issues, ${cpAllPoints - cpPoints} points`);
-
-    // Find which tickets were excluded
-    const includedKeys = new Set(cpData.issues.map(i => i.key));
-    const excluded = cpAllData.issues.filter(i => !includedKeys.has(i.key));
-    console.log(`\nExcluded tickets (carried over):`);
-    excluded.forEach(issue => {
-      console.log(`  - ${issue.key}: ${issue.fields.summary} (${issue.fields.customfield_10031 ?? 0} pts)`);
-    });
-  }
-
-  return tickets;
 }
 
 // Fetch a single sprint by ID

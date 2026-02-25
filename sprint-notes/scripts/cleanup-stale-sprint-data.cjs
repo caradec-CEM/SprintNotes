@@ -59,9 +59,17 @@ function getAuthHeaders() {
 
 const BASE_URL = 'https://cembenchmarking.atlassian.net';
 
-async function jiraFetch(endpoint) {
+async function jiraFetch(endpoint, retries = 3) {
   const url = `${BASE_URL}${endpoint}`;
   const response = await fetch(url, { headers: getAuthHeaders() });
+
+  if (response.status === 429 && retries > 0) {
+    const retryAfter = parseInt(response.headers.get('retry-after') || '10', 10);
+    const waitSec = Math.max(retryAfter, 10);
+    console.log(`  Rate limited — waiting ${waitSec}s before retry (${retries} retries left)...`);
+    await sleep(waitSec * 1000);
+    return jiraFetch(endpoint, retries - 1);
+  }
 
   if (!response.ok) {
     const body = await response.text().catch(() => '');
@@ -110,6 +118,7 @@ async function jiraPost(endpoint, body) {
 // ---------------------------------------------------------------------------
 
 const TERMINAL_STATUSES = ['Will Not Implement', 'IT - Canceled'];
+const PROJECTS = ['CP', 'IT'];
 const BOARD_ID = 9;
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -191,7 +200,9 @@ async function findSprintByNumber(sprintNumber) {
 }
 
 /**
- * Fetch all tickets in a sprint that are in terminal statuses, with changelogs.
+ * Fetch all tickets in a sprint that are in terminal statuses.
+ * Does NOT expand changelogs — those are fetched per-ticket in analyzeTicket()
+ * to avoid JIRA API timeouts on large result sets.
  */
 async function fetchTerminalTicketsInSprint(sprintId) {
   const allIssues = [];
@@ -199,12 +210,12 @@ async function fetchTerminalTicketsInSprint(sprintId) {
   const pageSize = 50;
 
   const statusList = TERMINAL_STATUSES.map(s => `"${s}"`).join(', ');
+  const projectList = PROJECTS.map(p => `"${p}"`).join(', ');
 
   while (true) {
     const params = new URLSearchParams({
-      jql: `sprint = ${sprintId} AND status in (${statusList}) ORDER BY key ASC`,
+      jql: `project in (${projectList}) AND sprint = ${sprintId} AND status in (${statusList}) ORDER BY key ASC`,
       fields: 'summary,status,customfield_10020',
-      expand: 'changelog',
       maxResults: String(pageSize),
       startAt: String(startAt),
     });
@@ -238,26 +249,20 @@ async function fetchSingleTicket(ticketKey) {
 }
 
 /**
- * If the inline changelog is incomplete, fetch the full changelog via pagination.
+ * Fetch the full changelog for a ticket via the dedicated changelog endpoint.
+ * Always fetches individually (never relies on expand: changelog in search).
  */
 async function getFullChangelog(issue) {
-  const changelog = issue.changelog;
-  if (!changelog) return [];
-
-  if (changelog.histories.length >= changelog.total) {
-    return changelog.histories;
-  }
-
-  console.log(`    ${issue.key}: fetching full changelog (${changelog.total} entries)...`);
   const allHistories = [];
   let startAt = 0;
   const pageSize = 100;
 
-  while (startAt < changelog.total) {
+  while (true) {
     const data = await jiraFetch(
       `/rest/api/3/issue/${issue.key}/changelog?startAt=${startAt}&maxResults=${pageSize}`
     );
     allHistories.push(...data.values);
+    if (startAt + data.values.length >= data.total) break;
     startAt += data.values.length;
     if (data.values.length === 0) break;
     await sleep(200);
@@ -607,11 +612,15 @@ async function main() {
     return;
   }
 
-  // Analyze
-  console.log('Analyzing changelogs...');
+  // Analyze — fetch changelogs individually per ticket
+  console.log('Analyzing changelogs (fetching individually per ticket)...');
   const results = [];
-  for (const issue of issues) {
+  for (let i = 0; i < issues.length; i++) {
+    const issue = issues[i];
+    process.stdout.write(`  [${i + 1}/${issues.length}] ${issue.key}...`);
     const result = await analyzeTicket(issue);
+    const staleCount = result.remove.length;
+    console.log(staleCount > 0 ? ` ${staleCount} stale sprint(s)` : ' clean');
     results.push(result);
     await sleep(200);
   }
