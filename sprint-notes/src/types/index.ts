@@ -29,10 +29,12 @@ export interface Ticket {
   developerName: string | null; // DEPRECATED: Use developerNames[0]
   reviewers: string[];         // Team member IDs (can be multiple, includes changelog)
   reviewerNames: string[];     // Display names
+  fieldReviewers: string[];    // Reviewers from JIRA Reviewer field only (no changelog)
   reviewer: string | null;     // DEPRECATED: Use reviewers[0] for backwards compat
   reviewerName: string | null; // DEPRECATED: Use reviewerNames[0]
   assignee: string | null;    // For IT tickets
   project: Project;
+  status?: string;
   labels: string[];
   categorizedLabels: CategorizedLabels;
   inProgressDuration?: StatusDuration;
@@ -177,6 +179,7 @@ export interface JiraIssueRaw {
   key: string;
   fields: {
     summary: string;
+    status?: { name: string; statusCategory?: { name: string } };
     issuetype: { name: string };
     priority: { name: string };
     assignee: { accountId: string; displayName: string } | null;

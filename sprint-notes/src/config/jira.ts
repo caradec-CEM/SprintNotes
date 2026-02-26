@@ -13,6 +13,7 @@ export const JIRA_CONFIG = {
   // Fields to request from JIRA API
   issueFields: [
     'summary',
+    'status',
     'issuetype',
     'priority',
     'assignee',

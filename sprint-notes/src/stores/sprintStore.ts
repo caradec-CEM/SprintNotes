@@ -15,6 +15,10 @@ interface SprintState {
   ticketsLoading: boolean;
   ticketsError: string | null;
 
+  // In-flight tickets (non-done) for active sprints
+  inFlightTickets: Ticket[];
+  inFlightLoading: boolean;
+
   // Actions
   setSprints: (sprints: Sprint[]) => void;
   setSprintsLoading: (loading: boolean) => void;
@@ -25,6 +29,9 @@ interface SprintState {
   setCurrentSprint: (data: SprintData | null) => void;
   setTicketsLoading: (loading: boolean) => void;
   setTicketsError: (error: string | null) => void;
+
+  setInFlightTickets: (tickets: Ticket[]) => void;
+  setInFlightLoading: (loading: boolean) => void;
 }
 
 export const useSprintStore = create<SprintState>((set) => ({
@@ -39,6 +46,9 @@ export const useSprintStore = create<SprintState>((set) => ({
   ticketsLoading: false,
   ticketsError: null,
 
+  inFlightTickets: [],
+  inFlightLoading: false,
+
   // Actions
   setSprints: (sprints) => set({ sprints }),
   setSprintsLoading: (sprintsLoading) => set({ sprintsLoading }),
@@ -49,6 +59,9 @@ export const useSprintStore = create<SprintState>((set) => ({
   setCurrentSprint: (currentSprint) => set({ currentSprint }),
   setTicketsLoading: (ticketsLoading) => set({ ticketsLoading }),
   setTicketsError: (ticketsError) => set({ ticketsError }),
+
+  setInFlightTickets: (inFlightTickets) => set({ inFlightTickets }),
+  setInFlightLoading: (inFlightLoading) => set({ inFlightLoading }),
 }));
 
 // Selector hooks for computed values

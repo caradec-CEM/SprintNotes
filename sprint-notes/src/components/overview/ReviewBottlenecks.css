@@ -1,0 +1,113 @@
+.review-bottlenecks__empty {
+  padding: var(--space-md);
+  text-align: center;
+  color: var(--color-text-subtle);
+  font-size: var(--font-size-sm);
+}
+
+.review-bottlenecks__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+/* Engineer card */
+.bottleneck-card {
+  background: var(--color-tint-orange-bg);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 30%, transparent);
+  border-radius: var(--radius-md, 6px);
+  padding: var(--space-md);
+}
+
+.bottleneck-card__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.bottleneck-card__name {
+  font-weight: 600;
+  color: var(--color-tint-orange-text);
+  font-size: var(--font-size-base, 14px);
+}
+
+.bottleneck-card__count {
+  font-size: var(--font-size-xs, 11px);
+  color: var(--color-tint-orange-text);
+  background: color-mix(in srgb, var(--color-warning) 20%, transparent);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.bottleneck-card__reviews {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+/* Each blocked review */
+.blocked-review {
+  background: color-mix(in srgb, var(--color-bg-card) 60%, transparent);
+  border-radius: 4px;
+  padding: var(--space-sm) var(--space-md);
+}
+
+.blocked-review__header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+  font-size: var(--font-size-sm, 12px);
+  line-height: 1.6;
+}
+
+.blocked-review__span {
+  color: var(--color-text-subtle);
+  font-size: var(--font-size-xs, 11px);
+}
+
+.blocked-review__days {
+  font-weight: 600;
+  color: var(--color-tint-orange-text);
+  font-size: var(--font-size-xs, 11px);
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+/* Dev work lines beneath the review */
+.blocked-review__reason {
+  margin-top: 2px;
+  padding-left: var(--space-md);
+}
+
+.blocked-review__dev-line {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-xs);
+  font-size: var(--font-size-xs, 11px);
+  color: var(--color-text-subtle);
+  line-height: 1.6;
+}
+
+.blocked-review__dev-arrow {
+  color: var(--color-chart-dev);
+  flex-shrink: 0;
+}
+
+.blocked-review__dev-span {
+  color: var(--color-text-subtle);
+  opacity: 0.8;
+}
+
+.blocked-review__overlap {
+  font-weight: 600;
+  color: var(--color-tint-orange-text);
+  white-space: nowrap;
+}
+
+@media print {
+  .bottleneck-card {
+    break-inside: avoid;
+  }
+}

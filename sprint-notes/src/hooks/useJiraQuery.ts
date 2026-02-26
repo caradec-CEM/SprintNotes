@@ -1,7 +1,7 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { useSprintStore } from '../stores/sprintStore';
 import { useHistoryStore, createSprintSummary } from '../stores/historyStore';
-import { fetchSprints, fetchSprintData, fetchSprintIssues } from '../services/jiraService';
+import { fetchSprints, fetchSprintData, fetchSprintIssues, fetchActiveSprintInFlightTickets } from '../services/jiraService';
 import type { Sprint } from '../types';
 
 // Hook to load available sprints
@@ -99,6 +99,8 @@ export function useSprintData() {
     setCurrentSprint,
     setTicketsLoading,
     setTicketsError,
+    setInFlightTickets,
+    setInFlightLoading,
   } = useSprintStore();
 
   const { addSprintSummary } = useHistoryStore();
@@ -106,6 +108,7 @@ export function useSprintData() {
   const loadSprintData = useCallback(async (sprintId: string) => {
     setTicketsLoading(true);
     setTicketsError(null);
+    setInFlightTickets([]);
 
     try {
       const data = await fetchSprintData(sprintId);
@@ -127,6 +130,19 @@ export function useSprintData() {
           data.tickets
         );
         addSprintSummary(summary);
+
+        // Fetch in-flight tickets for active sprints
+        if (data.sprint.state === 'active') {
+          setInFlightLoading(true);
+          try {
+            const inFlight = await fetchActiveSprintInFlightTickets(sprintId);
+            setInFlightTickets(inFlight);
+          } catch (e) {
+            console.warn('Failed to load in-flight tickets:', e);
+          } finally {
+            setInFlightLoading(false);
+          }
+        }
       }
     } catch (error) {
       setTicketsError(
@@ -135,7 +151,7 @@ export function useSprintData() {
     } finally {
       setTicketsLoading(false);
     }
-  }, [setCurrentSprint, setTicketsLoading, setTicketsError, addSprintSummary]);
+  }, [setCurrentSprint, setTicketsLoading, setTicketsError, addSprintSummary, setInFlightTickets, setInFlightLoading]);
 
   useEffect(() => {
     if (selectedSprintId) {

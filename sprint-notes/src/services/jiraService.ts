@@ -149,6 +149,9 @@ function transformIssue(raw: JiraIssueRaw, sprintId: string): Ticket {
     });
   }
 
+  // Snapshot of field-only reviewers (before changelog additions)
+  const fieldReviewers = [...reviewers];
+
   // Also extract reviewers from changelog (who transitioned to/from "Reviewing" status)
   if (raw.changelog?.histories) {
     for (const history of raw.changelog.histories) {
@@ -224,10 +227,12 @@ function transformIssue(raw: JiraIssueRaw, sprintId: string): Ticket {
     developerName,   // Backwards compat
     reviewers,
     reviewerNames,
+    fieldReviewers,
     reviewer,        // Backwards compat
     reviewerName,    // Backwards compat
     assignee: assigneeMember?.id ?? null,
     project,
+    status: raw.fields.status?.name,
     labels,
     categorizedLabels,
     inProgressDuration,
@@ -366,4 +371,23 @@ export async function fetchSprintData(sprintId: string): Promise<{
     console.error('Failed to fetch sprint data:', error);
     throw error;
   }
+}
+
+// Fetch non-done tickets for the active sprint (In Progress, Reviewing, etc.)
+export async function fetchActiveSprintInFlightTickets(sprintId: string): Promise<Ticket[]> {
+  const fields = JIRA_CONFIG.issueFields;
+  const excludeStatuses = 'status NOT IN ("Will Not Implement", "IT - Canceled")';
+  const jql = `sprint = ${sprintId} AND sprint NOT IN futureSprints() AND statusCategory != Done AND ${excludeStatuses}`;
+
+  const params = new URLSearchParams({
+    jql,
+    fields: fields.join(','),
+    expand: 'changelog',
+    maxResults: '200',
+  });
+
+  const endpoint = `${JIRA_ENDPOINTS.search}?${params.toString()}`;
+  const data = await jiraFetch<{ issues: JiraIssueRaw[]; total: number }>(endpoint);
+
+  return data.issues.map(raw => transformIssue(raw, sprintId));
 }

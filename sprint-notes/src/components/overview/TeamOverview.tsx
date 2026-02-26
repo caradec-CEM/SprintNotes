@@ -2,6 +2,7 @@ import { useSprintStore } from '../../stores/sprintStore';
 import { Section } from '../layout';
 import { LoadBalanceChart } from './LoadBalanceChart';
 import { SummaryTable } from './SummaryTable';
+import { ReviewBottlenecks } from './ReviewBottlenecks';
 import { TeamTrends } from './TeamTrends';
 import { SprintCapacityEditor } from './SprintCapacityEditor';
 import { LoadingSpinner } from '../common';
@@ -78,6 +79,11 @@ export function TeamOverview() {
         {/* Load Balance Chart */}
         <Section title="Workload Distribution">
           <LoadBalanceChart />
+        </Section>
+
+        {/* Review Bottlenecks */}
+        <Section title="Review Bottlenecks">
+          <ReviewBottlenecks />
         </Section>
 
         {/* Team Trends */}
