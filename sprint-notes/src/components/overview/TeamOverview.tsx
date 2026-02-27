@@ -5,6 +5,7 @@ import { SummaryTable } from './SummaryTable';
 import { ReviewBottlenecks } from './ReviewBottlenecks';
 import { TeamTrends } from './TeamTrends';
 import { SprintCapacityEditor } from './SprintCapacityEditor';
+import { DemoDeckText } from './DemoDeckText';
 import { LoadingSpinner } from '../common';
 import { formatSprintDateRange } from '../../utils/dateUtils';
 import './TeamOverview.css';
@@ -71,6 +72,11 @@ export function TeamOverview() {
       </div>
 
       <div className="team-overview__content">
+        {/* Demo Deck Text Generator */}
+        <Section title="Demo Deck Text" defaultCollapsed>
+          <DemoDeckText />
+        </Section>
+
         {/* Summary Table */}
         <Section title="Team Summary" flush>
           <SummaryTable />

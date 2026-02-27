@@ -31,6 +31,22 @@ export default defineConfig(({ mode }) => {
             })
           },
         },
+        '/anthropic-api': {
+          target: 'https://api.anthropic.com',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/anthropic-api/, ''),
+          configure: (proxy) => {
+            proxy.on('proxyReq', (proxyReq) => {
+              proxyReq.removeHeader('cookie')
+              const apiKey = env.VITE_ANTHROPIC_API_KEY
+              if (apiKey) {
+                proxyReq.setHeader('x-api-key', apiKey)
+              }
+              proxyReq.setHeader('anthropic-version', '2023-06-01')
+              proxyReq.setHeader('Content-Type', 'application/json')
+            })
+          },
+        },
       },
     },
   }
