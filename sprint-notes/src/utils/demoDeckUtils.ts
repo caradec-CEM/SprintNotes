@@ -214,6 +214,23 @@ export async function generateSlide2Narrative(
       : 'No PTO this sprint.',
     `Carry-over tickets: ${carryOverCount} of ${cpTickets.length} total${carryOverRatio > 0.25 ? ' — high carry-over ratio suggests overcommitment last sprint' : ''}`,
     `Team size: ${TEAM_MEMBERS.length} engineers`,
+    (() => {
+      const itTickets = tickets.filter((t) => t.project === 'IT');
+      const itTicketCount = itTickets.length;
+      const itHistoryCounts = recentSprints
+        .map((s) => s.totalTickets ?? 0)
+        .filter((n) => n > 0);
+      const itHistoryAvg = itHistoryCounts.length > 0
+        ? Math.round(itHistoryCounts.reduce((a, b) => a + b, 0) / itHistoryCounts.length)
+        : null;
+      if (itHistoryAvg !== null && itHistoryAvg > 0) {
+        const itPctDiff = Math.round(((itTicketCount - itHistoryAvg) / itHistoryAvg) * 100);
+        const aboveBelow = itPctDiff >= 0 ? 'above' : 'below';
+        const line = `IT Helpdesk tickets: ${itTicketCount} (avg: ${itHistoryAvg}, ${itPctDiff >= 0 ? '+' : ''}${itPctDiff}% ${aboveBelow} average)`;
+        return itPctDiff > 20 ? `${line} — higher than usual IT volume` : line;
+      }
+      return `IT Helpdesk tickets: ${itTicketCount}`;
+    })(),
   ].join('\n');
 
   const result = await generateText(NARRATIVE_SYSTEM_PROMPT, context);
@@ -260,6 +277,24 @@ export async function generateSlide2Narrative(
     } else {
       sentences.push(
         `Points completed (${totalPts}) were below the team's usual average of ${avgPts}.`
+      );
+    }
+  }
+
+  // Sentence 4 (conditional): IT ticket volume note
+  const fallbackItTickets = tickets.filter((t) => t.project === 'IT');
+  const fallbackItCount = fallbackItTickets.length;
+  const fallbackItHistoryCounts = recentSprints
+    .map((s) => s.totalTickets ?? 0)
+    .filter((n) => n > 0);
+  const fallbackItAvg = fallbackItHistoryCounts.length > 0
+    ? Math.round(fallbackItHistoryCounts.reduce((a, b) => a + b, 0) / fallbackItHistoryCounts.length)
+    : null;
+  if (fallbackItAvg !== null && fallbackItAvg > 0) {
+    const fallbackItPct = Math.round(((fallbackItCount - fallbackItAvg) / fallbackItAvg) * 100);
+    if (fallbackItPct > 20) {
+      sentences.push(
+        `IT ticket volume was higher than usual at ${fallbackItCount} (avg ${fallbackItAvg}), which may have impacted delivery capacity.`
       );
     }
   }

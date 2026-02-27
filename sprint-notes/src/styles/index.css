@@ -1,56 +1,64 @@
 :root {
+  /* Brand palette:
+     Benchmark Navy #2A3241 | Insight Blue #4A75A3 | Community Cyan #85C3DE
+     Waterfall Blue #E8F5F5 | Guide Grey #999999   | Framework Grey #E8E4E2
+     Violet #7a6392         | Lavender #d7d2e8     | Teal #56878a
+     Mint #98cec2           | Scatter Gold #d1962e  | Bar Yellow #fffadb
+     Line Green #8fa33b     | Light Green #dbedbd   | Indicator Red #de7a5e */
+
   /* Colors */
-  --color-primary: #0052cc;
-  --color-primary-hover: #0065ff;
-  --color-success: #36b37e;
-  --color-warning: #ffab00;
-  --color-danger: #de350b;
+  --color-primary: #4A75A3;
+  --color-primary-hover: #85C3DE;
+  --color-success: #56878a;
+  --color-warning: #d1962e;
+  --color-danger: #de7a5e;
 
   /* Neutrals */
   --color-bg: #f4f5f7;
   --color-bg-card: #ffffff;
-  --color-bg-hover: #ebecf0;
-  --color-text: #172b4d;
-  --color-text-subtle: #5e6c84;
-  --color-border: #dfe1e6;
+  --color-bg-chart: #f9f9f8;
+  --color-bg-hover: #E8E4E2;
+  --color-text: #2A3241;
+  --color-text-subtle: #999999;
+  --color-border: #E8E4E2;
 
   /* Issue types */
-  --color-story: #36b37e;
-  --color-bug: #ff5630;
-  --color-task: #4c9aff;
+  --color-story: #56878a;
+  --color-bug: #de7a5e;
+  --color-task: #4A75A3;
 
   /* Priority colors */
-  --color-highest: #ff5630;
-  --color-high: #ff7452;
-  --color-medium: #ffab00;
-  --color-low: #36b37e;
-  --color-lowest: #6554c0;
+  --color-highest: #de7a5e;
+  --color-high: #d1962e;
+  --color-medium: #d1962e;
+  --color-low: #8fa33b;
+  --color-lowest: #7a6392;
 
-  /* Semantic tints */
-  --color-tint-green-bg: #e3fcef;
-  --color-tint-green-text: #006644;
-  --color-tint-blue-bg: #deebff;
-  --color-tint-blue-text: #0747a6;
-  --color-tint-yellow-bg: #fff0b3;
-  --color-tint-yellow-text: #172b4d;
-  --color-tint-purple-bg: #eae6ff;
-  --color-tint-purple-text: #5243aa;
-  --color-tint-orange-bg: #fff4e5;
-  --color-tint-orange-text: #974f0c;
-  --color-tint-red-bg: #ffebe6;
-  --color-tint-red-text: #bf2600;
-  --color-tint-carryover-bg: #fff3e0;
-  --color-tint-carryover-text: #e65100;
+  /* Semantic tints — CP (blue family) */
+  --color-tint-green-bg: #e8f0f0;
+  --color-tint-green-text: #56878a;
+  --color-tint-blue-bg: #e0eef6;
+  --color-tint-blue-text: #4A75A3;
+  --color-tint-yellow-bg: #fffadb;
+  --color-tint-yellow-text: #6a471b;
+  --color-tint-purple-bg: #d7d2e8;
+  --color-tint-purple-text: #7a6392;
+  --color-tint-orange-bg: #f7e8de;
+  --color-tint-orange-text: #6a471b;
+  --color-tint-red-bg: #f7e8de;
+  --color-tint-red-text: #de7a5e;
+  --color-tint-carryover-bg: #fffadb;
+  --color-tint-carryover-text: #d1962e;
 
   /* Chart colors */
-  --color-chart-grid: #dfe1e6;
-  --color-chart-axis: #5e6c84;
+  --color-chart-grid: #E8E4E2;
+  --color-chart-axis: #999999;
   --color-chart-tooltip-bg: #ffffff;
-  --color-chart-tooltip-border: #dfe1e6;
-  --color-chart-primary: #0052cc;
-  --color-chart-dev: #36b37e;
-  --color-chart-review: #4c9aff;
-  --color-chart-pto-label: #b38600;
+  --color-chart-tooltip-border: #E8E4E2;
+  --color-chart-primary: #2A3241;
+  --color-chart-dev: #85C3DE;
+  --color-chart-review: #4A75A3;
+  --color-chart-pto-label: #d1962e;
 
   /* Spacing */
   --space-xs: 4px;
@@ -88,13 +96,14 @@
 
 [data-theme="dark"] {
   /* Neutrals */
-  --color-primary: #4c9aff;
-  --color-primary-hover: #79b8ff;
+  --color-primary: #85C3DE;
+  --color-primary-hover: #E8F5F5;
   --color-bg: #1a1d23;
   --color-bg-card: #22272e;
+  --color-bg-chart: #1e2229;
   --color-bg-hover: #2d333b;
-  --color-text: #cdd9e5;
-  --color-text-subtle: #768390;
+  --color-text: #E8F5F5;
+  --color-text-subtle: #999999;
   --color-border: #373e47;
 
   /* Shadows — layered for natural depth */
@@ -103,35 +112,35 @@
   --shadow-lg: 0 2px 4px rgba(0, 0, 0, 0.2), 0 8px 16px rgba(0, 0, 0, 0.35);
 
   /* Semantic tints */
-  --color-tint-green-bg: #1a3a2a;
-  --color-tint-green-text: #56d364;
+  --color-tint-green-bg: #1a2e2e;
+  --color-tint-green-text: #98cec2;
   --color-tint-blue-bg: #1a2a3a;
-  --color-tint-blue-text: #79b8ff;
+  --color-tint-blue-text: #85C3DE;
   --color-tint-yellow-bg: #3a3520;
-  --color-tint-yellow-text: #e3b341;
+  --color-tint-yellow-text: #d1962e;
   --color-tint-purple-bg: #2a2340;
-  --color-tint-purple-text: #b392f0;
+  --color-tint-purple-text: #d7d2e8;
   --color-tint-orange-bg: #3a2a1a;
-  --color-tint-orange-text: #f0a050;
+  --color-tint-orange-text: #d1962e;
   --color-tint-red-bg: #3a1a1a;
-  --color-tint-red-text: #f97583;
-  --color-tint-carryover-bg: #3a2a1a;
-  --color-tint-carryover-text: #f0a050;
+  --color-tint-red-text: #de7a5e;
+  --color-tint-carryover-bg: #3a3520;
+  --color-tint-carryover-text: #d1962e;
 
   /* Chart colors */
   --color-chart-grid: #373e47;
-  --color-chart-axis: #768390;
-  --color-chart-tooltip-bg: #2d333b;
-  --color-chart-tooltip-border: #444c56;
-  --color-chart-primary: #4c9aff;
-  --color-chart-dev: #56d364;
-  --color-chart-review: #79b8ff;
-  --color-chart-pto-label: #e3b341;
+  --color-chart-axis: #999999;
+  --color-chart-tooltip-bg: #2A3241;
+  --color-chart-tooltip-border: #4A75A3;
+  --color-chart-primary: #85C3DE;
+  --color-chart-dev: #98cec2;
+  --color-chart-review: #4A75A3;
+  --color-chart-pto-label: #d1962e;
 
   --color-btn-primary-text: #ffffff;
 
   /* Focus */
-  --color-focus-ring: rgba(76, 154, 255, 0.35);
+  --color-focus-ring: rgba(133, 195, 222, 0.35);
 }
 
 * {

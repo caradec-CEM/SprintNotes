@@ -33,14 +33,14 @@ export function TeamTrends() {
 
   // Calculate delta for total points
   const totalDelta = calculateTeamDelta(current, previous, 'total');
-  const ticketsDelta = calculateTeamDelta(current, previous, 'devCount');
+  const itDelta = calculateTeamDelta(current, previous, 'itCount');
 
   // Calculate averages
   const avgVelocity = Math.round(
     velocityData.reduce((sum, d) => sum + d.total, 0) / velocityData.length
   );
-  const avgTickets = Math.round(
-    velocityData.reduce((sum, d) => sum + d.devCount, 0) / velocityData.length
+  const avgItTickets = Math.round(
+    velocityData.reduce((sum, d) => sum + d.itCount, 0) / velocityData.length
   );
 
   // Check if any sprint has capacity < 100%
@@ -62,15 +62,6 @@ export function TeamTrends() {
             )}
           </div>
           <div className="team-trends__metric">
-            <div className="team-trends__metric-value">{ticketsDelta.value}</div>
-            <div className="team-trends__metric-label">Tickets</div>
-            {ticketsDelta.direction !== 'same' && (
-              <div className={`team-trends__metric-delta team-trends__metric-delta--${ticketsDelta.direction === 'up' ? 'down' : 'up'}`}>
-                {ticketsDelta.direction === 'up' ? '↑' : '↓'} {ticketsDelta.delta}
-              </div>
-            )}
-          </div>
-          <div className="team-trends__metric">
             <div className="team-trends__metric-value">{avgVelocity}</div>
             <div className="team-trends__metric-label">Avg Velocity</div>
             <div className="team-trends__metric-note">({velocityData.length} sprints)</div>
@@ -81,6 +72,16 @@ export function TeamTrends() {
               <div className="team-trends__metric-label">Capacity</div>
             </div>
           )}
+          <div className="team-trends__metric">
+            <div className="team-trends__metric-value">{itDelta.value}</div>
+            <div className="team-trends__metric-label">IT Tickets</div>
+            {itDelta.direction !== 'same' && (
+              <div className={`team-trends__metric-delta team-trends__metric-delta--${itDelta.direction === 'up' ? 'down' : 'up'}`}>
+                {itDelta.direction === 'up' ? '↑' : '↓'} {itDelta.delta}
+              </div>
+            )}
+            <div className="team-trends__metric-note">avg {avgItTickets}</div>
+          </div>
         </div>
       </div>
 
@@ -149,10 +150,10 @@ export function TeamTrends() {
                 <Line
                   type="monotone"
                   dataKey="normalizedTotal"
-                  stroke={cc.dev}
+                  stroke={cc.normalized}
                   strokeWidth={2}
                   strokeDasharray="5 5"
-                  dot={{ fill: cc.dev, strokeWidth: 2, r: 3 }}
+                  dot={{ fill: cc.normalized, strokeWidth: 2, r: 3 }}
                   name="Adjusted"
                   connectNulls
                 />
@@ -161,9 +162,9 @@ export function TeamTrends() {
           </ResponsiveContainer>
         </div>
 
-        {/* Tickets Bar Chart */}
+        {/* IT Helpdesk Tickets Bar Chart */}
         <div className="team-trends__chart">
-          <h4 className="team-trends__subtitle">Tickets Completed</h4>
+          <h4 className="team-trends__subtitle">IT Helpdesk Tickets</h4>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={velocityData}>
               <CartesianGrid strokeDasharray="3 3" stroke={cc.grid} />
@@ -183,7 +184,7 @@ export function TeamTrends() {
                 labelStyle={{ color: cc.text }}
                 itemStyle={{ color: cc.text }}
                 cursor={{ fill: cc.cursorFill }}
-                formatter={(value: number) => [`${value} tickets`, 'Completed']}
+                formatter={(value: number) => [`${value} tickets`, 'IT Helpdesk']}
                 labelFormatter={(label, payload) => {
                   const item = payload?.[0]?.payload;
                   if (item && item.capacityPercent < 100) {
@@ -193,15 +194,15 @@ export function TeamTrends() {
                 }}
               />
               <ReferenceLine
-                y={avgTickets}
+                y={avgItTickets}
                 stroke={cc.axis}
                 strokeDasharray="3 3"
-                label={{ value: `Avg: ${avgTickets}`, position: 'right', fontSize: 11, fill: cc.axis }}
+                label={{ value: `Avg: ${avgItTickets}`, position: 'right', fontSize: 11, fill: cc.axis }}
               />
               <Bar
-                dataKey="devCount"
-                fill={cc.primary}
-                name="Tickets"
+                dataKey="itCount"
+                fill={cc.it}
+                name="IT Tickets"
                 radius={[4, 4, 0, 0]}
               >
                 {velocityData.map((entry, index) => (

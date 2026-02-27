@@ -100,7 +100,7 @@
 }
 
 .individual-trends__chart {
-  background: var(--color-bg);
+  background: var(--color-bg-chart);
   padding: var(--space-md);
   border-radius: var(--radius-md);
 }

@@ -156,10 +156,10 @@ export function IndividualTrends({ engineerId }: IndividualTrendsProps) {
                 <Line
                   type="monotone"
                   dataKey="normalizedTotal"
-                  stroke={cc.dev}
+                  stroke={cc.normalized}
                   strokeWidth={2}
                   strokeDasharray="5 5"
-                  dot={{ fill: cc.dev, strokeWidth: 2, r: 3 }}
+                  dot={{ fill: cc.normalized, strokeWidth: 2, r: 3 }}
                   name="Adjusted"
                   connectNulls
                 />
