@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { SprintHistory, SprintSummary, EngineerMetrics, Ticket } from '../types';
+import type { SprintHistory, SprintSummary, EngineerMetrics, Ticket, DurationBaseline } from '../types';
 import { TEAM_MEMBERS } from '../config/team';
 
 // Calculate metrics for a single engineer from tickets
@@ -43,6 +43,39 @@ export function calculateEngineerMetrics(
   };
 }
 
+// Build duration baselines grouped by point size from CP tickets
+function buildDurationBaselines(
+  cpTickets: Ticket[]
+): Record<number, DurationBaseline> {
+  const groups = new Map<number, number[]>();
+
+  for (const ticket of cpTickets) {
+    if (ticket.points > 0 && ticket.inProgressDuration?.days) {
+      const days = ticket.inProgressDuration.days;
+      if (!groups.has(ticket.points)) {
+        groups.set(ticket.points, []);
+      }
+      groups.get(ticket.points)!.push(days);
+    }
+  }
+
+  const baselines: Record<number, DurationBaseline> = {};
+  for (const [points, daysList] of groups) {
+    const sorted = [...daysList].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    const median = sorted.length % 2 === 0
+      ? (sorted[mid - 1] + sorted[mid]) / 2
+      : sorted[mid];
+    baselines[points] = {
+      count: sorted.length,
+      totalDays: sorted.reduce((s, d) => s + d, 0),
+      median,
+    };
+  }
+
+  return baselines;
+}
+
 // Create sprint summary from sprint data
 export function createSprintSummary(
   sprintId: string,
@@ -62,6 +95,9 @@ export function createSprintSummary(
   const totalPoints = cpTickets.reduce((sum, t) => sum + t.points, 0);
   const totalTickets = itTickets.length;
 
+  // Build duration baselines from CP tickets with in-progress duration
+  const durationBaselines = buildDurationBaselines(cpTickets);
+
   return {
     id: sprintId,
     name: sprintName,
@@ -69,6 +105,7 @@ export function createSprintSummary(
     engineers,
     totalPoints,
     totalTickets,
+    durationBaselines,
   };
 }
 

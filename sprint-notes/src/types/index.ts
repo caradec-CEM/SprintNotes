@@ -73,6 +73,13 @@ export interface EngineerMetrics {
   avgInReviewHours?: number;
 }
 
+// Historical duration baseline per point size
+export interface DurationBaseline {
+  count: number;       // how many tickets at this point size
+  totalDays: number;   // sum of in-progress days
+  median: number;      // median in-progress days
+}
+
 // Sprint summary for history/trends
 export interface SprintSummary {
   id: string;
@@ -82,6 +89,7 @@ export interface SprintSummary {
   // Team-level totals (not derived from engineer metrics)
   totalPoints?: number;
   totalTickets?: number;
+  durationBaselines?: Record<number, DurationBaseline>;  // keyed by point value
 }
 
 export interface SprintHistory {

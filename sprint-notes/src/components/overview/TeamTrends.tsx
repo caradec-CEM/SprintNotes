@@ -215,6 +215,7 @@ export function TeamTrends() {
             </BarChart>
           </ResponsiveContainer>
         </div>
+
       </div>
     </div>
   );

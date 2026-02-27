@@ -97,7 +97,7 @@ export function formatDuration(days: number | undefined, isActive: boolean = fal
  * - 8 pts = 4 days
  * - 13 pts = 6.5 days
  */
-function getExpectedDays(points: number): number {
+export function getExpectedDays(points: number): number {
   if (points <= 1) return 1;
   if (points === 2) return 1;
   if (points === 3) return 1.5;
@@ -112,10 +112,10 @@ function getExpectedDays(points: number): number {
  * Get CSS class for duration color coding based on story points
  * Compares actual duration vs expected duration for the ticket size
  */
-export function getDurationClass(days: number | undefined, points: number): string {
+export function getDurationClass(days: number | undefined, points: number, expectedDays?: number): string {
   if (!days) return 'duration--none';
 
-  const expected = getExpectedDays(points);
+  const expected = expectedDays ?? getExpectedDays(points);
 
   // Green: On track or reasonably close (expected + 1 day buffer for estimates)
   if (days <= expected + 1) return 'duration--fast';

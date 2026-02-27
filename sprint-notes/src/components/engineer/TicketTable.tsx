@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import type { Ticket, StatusSpan, PointChange, ChangelogEntry } from '../../types';
 import { TypeBadge, PriorityBadge, TicketLink, Tooltip } from '../common';
 import { formatDuration, getDurationClass } from '../../utils/dateUtils';
+import { useDurationBaselines } from '../../hooks/useDurationBaselines';
 import { getLabelDisplayName, getPrimaryPlatform } from '../../config/labels';
 import './TicketTable.css';
 
@@ -144,6 +145,7 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
   const [sortKey, setSortKey] = useState<SortKey>('key');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [expandedTicket, setExpandedTicket] = useState<string | null>(null);
+  const { getExpectedDays } = useDurationBaselines();
 
   const colCount = showDevReviewer ? 10 : 8;
 
@@ -302,7 +304,7 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
                 }>
                   <span className={
                     isCurrentDeveloper(ticket.developers)
-                      ? getDurationClass(ticket.inProgressDuration?.days, ticket.points)
+                      ? getDurationClass(ticket.inProgressDuration?.days, ticket.points, getExpectedDays(ticket.points))
                       : 'duration--muted'
                   }>
                     {formatDuration(ticket.inProgressDuration?.days, ticket.inProgressDuration?.isActive)}
@@ -317,7 +319,7 @@ export function TicketTable({ tickets, engineerId, showDevReviewer = true }: Tic
                 }>
                   <span className={
                     isCurrentReviewer(ticket.reviewers)
-                      ? getDurationClass(ticket.inReviewDuration?.days, ticket.points)
+                      ? getDurationClass(ticket.inReviewDuration?.days, ticket.points, getExpectedDays(ticket.points))
                       : 'duration--muted'
                   }>
                     {formatDuration(ticket.inReviewDuration?.days, ticket.inReviewDuration?.isActive)}
