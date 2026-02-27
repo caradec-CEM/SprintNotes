@@ -35,6 +35,30 @@
             "workingDays": 9
           }
         }
+      },
+      "1093": {
+        "sprintId": "1093",
+        "lastModified": 1772062236273,
+        "engineers": {},
+        "timeOff": {
+          "efron": {
+            "ptoDays": 1,
+            "workingDays": 8
+          },
+          "erick": {
+            "ptoDays": 1,
+            "workingDays": 8
+          },
+          "mitchell": {
+            "ptoDays": 2,
+            "workingDays": 7
+          }
+        },
+        "capacity": {
+          "defaultWorkingDays": 10,
+          "teamHolidays": 1,
+          "effectiveSprintDays": 9
+        }
       }
     }
   },

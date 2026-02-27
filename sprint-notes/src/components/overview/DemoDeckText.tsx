@@ -4,7 +4,6 @@ import { useNotesStore } from '../../stores/notesStore';
 import { useHistoryStore } from '../../stores/historyStore';
 import { TEAM_MEMBERS } from '../../config/team';
 import {
-  generateSlide1,
   generateSlide2Summary,
   generateSlide2Metrics,
   generateSlide2Narrative,
@@ -28,7 +27,6 @@ export function DemoDeckText() {
   const getEngineerTimeOff = useNotesStore((s) => s.getEngineerTimeOff);
   const getRecentSprints = useHistoryStore((s) => s.getRecentSprints);
 
-  const [slide1, setSlide1] = useState('');
   const [slide2Summary, setSlide2Summary] = useState('');
   const [slide2Metrics, setSlide2Metrics] = useState('');
   const [slide2Narrative, setSlide2Narrative] = useState('');
@@ -90,7 +88,6 @@ export function DemoDeckText() {
     const recentSprints = getRecentSprints(6, currentSprint.id);
 
     // Deterministic
-    setSlide1(generateSlide1(currentSprint));
     setSlide2Summary(
       generateSlide2Summary(currentSprint.tickets, recentSprints)
     );
@@ -98,7 +95,7 @@ export function DemoDeckText() {
       generateSlide2Metrics(currentSprint.tickets, sprintState, inFlightTickets)
     );
 
-    // Reset LLM fields
+    // Reset LLM fields before regenerating
     setSlide2Narrative('');
     setSlide3Features('');
     setSlide3Fixes('');
@@ -120,7 +117,6 @@ export function DemoDeckText() {
   if (!currentSprint) return null;
 
   const sections: SlideSection[] = [
-    { label: 'Slide 1 — Title', value: slide1, loading: false, rows: 1 },
     { label: 'Slide 2 — Ticket Counts', value: slide2Summary, loading: false, rows: 2 },
     { label: 'Slide 2 — Metrics', value: slide2Metrics, loading: false, rows: 3 },
     { label: 'Slide 2 — Narrative', value: slide2Narrative, loading: narrativeLoading, rows: 3 },
@@ -130,7 +126,6 @@ export function DemoDeckText() {
 
   // Map label -> setter
   const setters: Record<string, (v: string) => void> = {
-    'Slide 1 — Title': setSlide1,
     'Slide 2 — Ticket Counts': setSlide2Summary,
     'Slide 2 — Metrics': setSlide2Metrics,
     'Slide 2 — Narrative': setSlide2Narrative,

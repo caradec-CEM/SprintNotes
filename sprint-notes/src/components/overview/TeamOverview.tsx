@@ -72,11 +72,6 @@ export function TeamOverview() {
       </div>
 
       <div className="team-overview__content">
-        {/* Demo Deck Text Generator */}
-        <Section title="Demo Deck Text" defaultCollapsed>
-          <DemoDeckText />
-        </Section>
-
         {/* Summary Table */}
         <Section title="Team Summary" flush>
           <SummaryTable />
@@ -87,14 +82,19 @@ export function TeamOverview() {
           <LoadBalanceChart />
         </Section>
 
+        {/* Team Trends */}
+        <Section title="Team Trends">
+          <TeamTrends />
+        </Section>
+
         {/* Review Bottlenecks */}
         <Section title="Review Bottlenecks">
           <ReviewBottlenecks />
         </Section>
 
-        {/* Team Trends */}
-        <Section title="Team Trends">
-          <TeamTrends />
+        {/* Demo Deck Text Generator */}
+        <Section title="Demo Deck Text" defaultCollapsed>
+          <DemoDeckText />
         </Section>
       </div>
     </div>

@@ -79,9 +79,9 @@ export function EngineerPanel({ engineerId }: EngineerPanelProps) {
           />
         </Section>
 
-        {/* Time Off */}
-        <Section title="Time Off" defaultCollapsed={true}>
-          <TimeOffEditor engineerId={engineerId} />
+        {/* Individual Trends */}
+        <Section title="Trends" defaultCollapsed={false}>
+          <IndividualTrends engineerId={engineerId} />
         </Section>
 
         {/* Discussion Notes */}
@@ -100,9 +100,9 @@ export function EngineerPanel({ engineerId }: EngineerPanelProps) {
           />
         </Section>
 
-        {/* Individual Trends */}
-        <Section title="Trends" defaultCollapsed={false}>
-          <IndividualTrends engineerId={engineerId} />
+        {/* Time Off */}
+        <Section title="Time Off" defaultCollapsed={true}>
+          <TimeOffEditor engineerId={engineerId} />
         </Section>
       </div>
     </div>
