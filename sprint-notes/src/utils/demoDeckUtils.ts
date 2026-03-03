@@ -120,28 +120,32 @@ export function generateSlide2Metrics(
 // ── Slide 2: Narrative (LLM-assisted) ───────────────────────────────
 
 const NARRATIVE_SYSTEM_PROMPT = `You write sprint review narratives for an engineering team's demo deck.
-Write 2-3 sentences that describe the sprint's focus, any capacity issues, velocity, and scope creep.
+Write 2-4 sentences that describe the sprint's focus and briefly characterize the work across platforms.
 
-Use past tense. Be factual, concise, professional.
-Do NOT use bullet points. Write a short paragraph.
-Do NOT start with "During this sprint" — vary the opening.
+Rules:
+- Use past tense. Be factual, concise, professional.
+- Do NOT use bullet points. Write a short paragraph.
+- Do NOT start with "During this sprint" — vary the opening.
+- Always mention the major platforms and briefly characterize the KIND of work done on each (e.g. "lifecycle hardening", "deployment stabilization", "multi-language support") rather than just naming the platforms. Use the ticket summaries provided to identify themes.
+- Keep it to 2-4 sentences total. Don't describe every ticket — synthesize into themes.
+- If capacity, velocity, or carry-over are notable, weave them in naturally.
 
 Here are real examples from past sprint decks to match the tone and content:
 
 Example 1 (heavy single-platform sprint):
-"This sprint was heavily weighted toward Template Safari integration and deployment readiness. The team focused on finalizing the migration path and resolving blockers ahead of the launch window, with lighter work on Survey and CEMQ improvements."
+"This sprint was heavily weighted toward Template Safari, with most points focused on mandate lifecycle hardening, Excel generation, and deployment stabilization. There was also meaningful Survey work across both V1 and V2, plus a smaller but important set of CEMQ and infrastructure items, including hotfixes and production deployments."
 
 Example 2 (capacity-impacted sprint):
 "The team was down 1-2 engineers for most of the sprint due to PTO, leading to slightly lower story points than usual. Work was spread across Survey enhancements and Dashboard stability fixes, with a few carry-over items from the previous sprint."
 
 Example 3 (strong sprint with carry-overs):
-"Points completed were higher than average, likely due to semi-completed carry-over work from the previous sprint being closed out early. The team delivered across Template Safari, Survey, and CEMQ with steady progress throughout."
+"Points completed were higher than average, likely due to semi-completed carry-over work from the previous sprint being closed out early. The team delivered Template Safari integration and migration work, Survey locale validation, and CEMQ document ingestion improvements."
 
 Example 4 (short/holiday sprint):
-"Short sprint due to the holidays — the team had only 7 effective working days. Despite the reduced capacity, the team completed a solid set of Dashboard and Survey improvements."
+"Short sprint due to the holidays — the team had only 7 effective working days. Despite the reduced capacity, the team completed a solid set of Dashboard reporting improvements and Survey accessibility fixes."
 
 Example 5 (overcommitted sprint with scope creep):
-"The team closed below our usual velocity this sprint. There was steady scope creep throughout due to the large amount of Template Safari work alongside addressing items for the launch, which spread the team thin across multiple priorities."`;
+"The team closed below our usual velocity this sprint, spread thin across Template Safari launch prep, Survey V2 enhancements, and ongoing CEMQ admin tooling. Steady scope creep from the Template Safari launch work contributed to the lower throughput."`;
 
 export async function generateSlide2Narrative(
   sprint: SprintData,
@@ -199,6 +203,25 @@ export async function generateSlide2Narrative(
   // Capacity shortfall
   const daysLost = capacity.defaultWorkingDays - capacity.effectiveSprintDays;
 
+  // Per-platform ticket summaries for work theme characterization
+  const platformTicketMap = new Map<string, Ticket[]>();
+  for (const t of cpTickets) {
+    const plat = getPrimaryPlatform(t.labels);
+    if (!platformTicketMap.has(plat)) platformTicketMap.set(plat, []);
+    platformTicketMap.get(plat)!.push(t);
+  }
+  const platformBreakdown = sortedPlatforms
+    .map(([name]) => {
+      const platTickets = platformTicketMap.get(name) ?? [];
+      // Show top tickets by points to give the LLM material for theme characterization
+      const top = [...platTickets]
+        .sort((a, b) => b.points - a.points)
+        .slice(0, 5)
+        .map((t) => `${t.key} (${t.points}pts): ${t.summary}`);
+      return `${name}:\n  ${top.join('\n  ')}`;
+    })
+    .join('\n');
+
   // Build enriched context for LLM
   const context = [
     `Sprint: ${sprint.name}`,
@@ -207,6 +230,7 @@ export async function generateSlide2Narrative(
     dominantPlatform
       ? `Dominant platform: ${dominantPlatform.name} at ${dominantPlatform.pct}% of points — sprint was heavily weighted toward this platform.`
       : 'Work was spread across multiple platforms — no single platform dominated.',
+    `\nTickets by platform (use these to characterize the work themes):\n${platformBreakdown}`,
     `Total points completed: ${totalPts}${avgPts !== null ? ` (team avg: ${avgPts}, ${velocityDiffPct !== null && velocityDiffPct >= 0 ? '+' : ''}${velocityDiffPct}% ${velocityDiffPct !== null && velocityDiffPct >= 0 ? 'above' : 'below'} average)` : ''}`,
     `Effective sprint days: ${capacity.effectiveSprintDays} of ${capacity.defaultWorkingDays}${daysLost > 0 ? ` (${daysLost} day${daysLost !== 1 ? 's' : ''} lost to holidays)` : ''}`,
     totalPtoDays > 0

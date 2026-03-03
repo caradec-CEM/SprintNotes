@@ -35,15 +35,13 @@ export default defineConfig(({ mode }) => {
           target: 'https://api.anthropic.com',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/anthropic-api/, ''),
+          headers: {
+            'x-api-key': env.VITE_ANTHROPIC_API_KEY ?? '',
+            'anthropic-version': '2023-06-01',
+          },
           configure: (proxy) => {
             proxy.on('proxyReq', (proxyReq) => {
               proxyReq.removeHeader('cookie')
-              const apiKey = env.VITE_ANTHROPIC_API_KEY
-              if (apiKey) {
-                proxyReq.setHeader('x-api-key', apiKey)
-              }
-              proxyReq.setHeader('anthropic-version', '2023-06-01')
-              proxyReq.setHeader('Content-Type', 'application/json')
             })
           },
         },
