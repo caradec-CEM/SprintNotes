@@ -12,11 +12,14 @@ import {
 import type { EngineerTimeOff } from '../../types';
 import './DemoDeckText.css';
 
+type TextSource = 'ai' | 'fallback' | null;
+
 interface SlideSection {
   label: string;
   value: string;
   loading: boolean;
   rows?: number;
+  source?: TextSource;
 }
 
 export function DemoDeckText() {
@@ -35,6 +38,9 @@ export function DemoDeckText() {
   const [narrativeLoading, setNarrativeLoading] = useState(false);
   const [slide3Loading, setSlide3Loading] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [narrativeSource, setNarrativeSource] = useState<TextSource>(null);
+  const [featuresSource, setFeaturesSource] = useState<TextSource>(null);
+  const [fixesSource, setFixesSource] = useState<TextSource>(null);
 
   // Track the sprint ID so we can re-generate on sprint change
   const prevSprintId = useRef<string | null>(null);
@@ -53,6 +59,7 @@ export function DemoDeckText() {
 
     // Narrative
     setNarrativeLoading(true);
+    setNarrativeSource(null);
     try {
       const narrative = await generateSlide2Narrative(
         currentSprint,
@@ -61,19 +68,24 @@ export function DemoDeckText() {
         timeOff,
         recentSprints
       );
-      setSlide2Narrative(narrative);
+      setSlide2Narrative(narrative.text);
+      setNarrativeSource(narrative.source);
     } finally {
       setNarrativeLoading(false);
     }
 
     // Slide 3
     setSlide3Loading(true);
+    setFeaturesSource(null);
+    setFixesSource(null);
     try {
       const { features, fixes } = await generateSlide3Content(
         currentSprint.tickets
       );
-      setSlide3Features(features);
-      setSlide3Fixes(fixes);
+      setSlide3Features(features.text);
+      setSlide3Fixes(fixes.text);
+      setFeaturesSource(features.source);
+      setFixesSource(fixes.source);
     } finally {
       setSlide3Loading(false);
     }
@@ -119,9 +131,9 @@ export function DemoDeckText() {
   const sections: SlideSection[] = [
     { label: 'Slide 2 — Ticket Counts', value: slide2Summary, loading: false, rows: 2 },
     { label: 'Slide 2 — Metrics', value: slide2Metrics, loading: false, rows: 3 },
-    { label: 'Slide 2 — Narrative', value: slide2Narrative, loading: narrativeLoading, rows: 3 },
-    { label: 'Slide 3 — Key Features', value: slide3Features, loading: slide3Loading, rows: 6 },
-    { label: 'Slide 3 — Key Fixes', value: slide3Fixes, loading: slide3Loading, rows: 4 },
+    { label: 'Slide 2 — Narrative', value: slide2Narrative, loading: narrativeLoading, rows: 3, source: narrativeSource },
+    { label: 'Slide 3 — Key Features', value: slide3Features, loading: slide3Loading, rows: 6, source: featuresSource },
+    { label: 'Slide 3 — Key Fixes', value: slide3Fixes, loading: slide3Loading, rows: 4, source: fixesSource },
   ];
 
   // Map label -> setter
@@ -140,7 +152,14 @@ export function DemoDeckText() {
       {sections.map((s) => (
         <div key={s.label} className="demo-deck__slide">
           <div className="demo-deck__slide-header">
-            <h4 className="demo-deck__slide-title">{s.label}</h4>
+            <h4 className="demo-deck__slide-title">
+              {s.label}
+              {s.source && (
+                <span className={`demo-deck__source-badge demo-deck__source-badge--${s.source}`}>
+                  {s.source === 'ai' ? 'AI' : 'Fallback'}
+                </span>
+              )}
+            </h4>
             <div className="demo-deck__actions">
               <button
                 className={`demo-deck__copy-btn${copiedField === s.label ? ' demo-deck__copy-btn--copied' : ''}`}

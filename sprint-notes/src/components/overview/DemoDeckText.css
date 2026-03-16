@@ -31,6 +31,27 @@
   margin: 0;
 }
 
+.demo-deck__source-badge {
+  display: inline-block;
+  margin-left: var(--space-xs);
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  vertical-align: middle;
+  letter-spacing: 0.03em;
+}
+
+.demo-deck__source-badge--ai {
+  background: var(--color-tint-green-bg);
+  color: var(--color-tint-green-text);
+}
+
+.demo-deck__source-badge--fallback {
+  background: var(--color-tint-yellow-bg);
+  color: var(--color-tint-yellow-text);
+}
+
 .demo-deck__actions {
   display: flex;
   gap: var(--space-xs);

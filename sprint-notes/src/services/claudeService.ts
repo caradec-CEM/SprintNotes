@@ -38,7 +38,8 @@ export async function generateText(
     });
 
     if (!res.ok) {
-      console.warn(`Claude API error: ${res.status} ${res.statusText}`);
+      const errorBody = await res.text();
+      console.warn(`Claude API error: ${res.status} ${res.statusText}`, errorBody);
       return '';
     }
 

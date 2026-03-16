@@ -147,13 +147,15 @@ Example 4 (short/holiday sprint):
 Example 5 (overcommitted sprint with scope creep):
 "The team closed below our usual velocity this sprint, spread thin across Template Safari launch prep, Survey V2 enhancements, and ongoing CEMQ admin tooling. Steady scope creep from the Template Safari launch work contributed to the lower throughput."`;
 
+export type GeneratedText = { text: string; source: 'ai' | 'fallback' };
+
 export async function generateSlide2Narrative(
   sprint: SprintData,
   tickets: Ticket[],
   capacity: SprintCapacity,
   timeOff: Record<string, EngineerTimeOff>,
   recentSprints: SprintSummary[]
-): Promise<string> {
+): Promise<GeneratedText> {
   const cpTickets = tickets.filter((t) => t.project === 'CP');
 
   // Top platforms by point total
@@ -259,7 +261,7 @@ export async function generateSlide2Narrative(
 
   const result = await generateText(NARRATIVE_SYSTEM_PROMPT, context);
 
-  if (result) return result;
+  if (result) return { text: result, source: 'ai' as const };
 
   // ── Deterministic fallback: assemble 2-3 sentences from data ──
 
@@ -323,7 +325,7 @@ export async function generateSlide2Narrative(
     }
   }
 
-  return sentences.join(' ');
+  return { text: sentences.join(' '), source: 'fallback' as const };
 }
 
 // ── Slide 3: Features & Fixes (LLM-assisted) ────────────────────────
@@ -394,7 +396,7 @@ function buildFallbackLines(groups: PlatformGroup[]): string {
 
 export async function generateSlide3Content(
   tickets: Ticket[]
-): Promise<{ features: string; fixes: string }> {
+): Promise<{ features: GeneratedText; fixes: GeneratedText }> {
   // Exclude Recurring tickets (week-by-week work not relevant to sprint demos)
   const cpTickets = tickets.filter(
     (t) => t.project === 'CP' && !t.labels.includes('Recurring')
@@ -412,7 +414,7 @@ export async function generateSlide3Content(
   const fixGroups = groupTicketsByPlatform(fixTickets);
 
   // Generate features
-  let features = '';
+  let features: GeneratedText = { text: '', source: 'fallback' };
   if (featureGroups.length > 0) {
     const featureContext = featureGroups
       .map((g) => {
@@ -427,11 +429,13 @@ export async function generateSlide3Content(
       SLIDE3_SYSTEM_PROMPT,
       `Write "Key Features" lines for these completed tickets. Consolidate related work into themes and prioritize high-point items:\n\n${featureContext}`
     );
-    features = featureResult || buildFallbackLines(featureGroups);
+    features = featureResult
+      ? { text: featureResult, source: 'ai' }
+      : { text: buildFallbackLines(featureGroups), source: 'fallback' };
   }
 
   // Generate fixes
-  let fixes = '';
+  let fixes: GeneratedText = { text: '', source: 'fallback' };
   if (fixGroups.length > 0) {
     const fixContext = fixGroups
       .map((g) => {
@@ -446,7 +450,9 @@ export async function generateSlide3Content(
       SLIDE3_SYSTEM_PROMPT,
       `Write "Key Fixes" lines for these resolved bugs/hotfixes. Consolidate related work into themes and prioritize high-point items:\n\n${fixContext}`
     );
-    fixes = fixResult || buildFallbackLines(fixGroups);
+    fixes = fixResult
+      ? { text: fixResult, source: 'ai' }
+      : { text: buildFallbackLines(fixGroups), source: 'fallback' };
   }
 
   return { features, fixes };
