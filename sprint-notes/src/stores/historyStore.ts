@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { SprintHistory, SprintSummary, EngineerMetrics, Ticket, DurationBaseline } from '../types';
-import { TEAM_MEMBERS } from '../config/team';
+import { getAllMembers } from './teamStore';
 
 // Calculate metrics for a single engineer from tickets
 export function calculateEngineerMetrics(
@@ -85,7 +85,9 @@ export function createSprintSummary(
 ): SprintSummary {
   const engineers: Record<string, EngineerMetrics> = {};
 
-  for (const member of TEAM_MEMBERS) {
+  // Iterate ALL members (including former) so backfills of past sprints preserve
+  // their contributions. Members with no tickets get zero entries — harmless.
+  for (const member of getAllMembers()) {
     engineers[member.id] = calculateEngineerMetrics(member.id, tickets);
   }
 

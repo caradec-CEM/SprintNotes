@@ -1,3 +1,4 @@
+export { Avatar } from './Avatar';
 export { LoadingSpinner } from './LoadingSpinner';
 export { TypeBadge, PriorityBadge, RoleBadge } from './Badge';
 export { TicketLink } from './TicketLink';

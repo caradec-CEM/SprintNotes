@@ -4,7 +4,7 @@ Ideas for iteration once the MVP is validated against real sprint data.
 
 ## Prompt tuning
 
-- [ ] Feed actual slide text from past decks (sprint-demos/*.pptx) into the system prompts as few-shot examples
+- [ ] Feed actual slide text from past decks (demos/*.pptx) into the system prompts as few-shot examples
 - [ ] Tune temperature / adjust system prompt phrasing based on output quality
 - [ ] Consider adding the sprint number context so the LLM can reference it naturally ("Sprint 55 was primarily focused on...")
 

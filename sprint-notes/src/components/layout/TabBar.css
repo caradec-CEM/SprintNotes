@@ -55,6 +55,18 @@
   font-weight: 500;
 }
 
+.tab-bar__admin-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-tint-violet-text, var(--color-text-subtle));
+  flex-shrink: 0;
+}
+
+.tab-bar__tab--active .tab-bar__admin-dot {
+  background: white;
+}
+
 .tab-bar__divider {
   width: 1px;
   height: 24px;

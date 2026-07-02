@@ -4,6 +4,8 @@ export interface TeamMember {
   name: string;         // Display name
   accountId: string;    // JIRA account ID
   avatarUrl?: string;
+  active: boolean;      // false = former member (hide from current-sprint UI, keep for historical data)
+  role: 'engineer' | 'admin'; // 'admin' = on roster, work counted, but excluded from capacity denominator
 }
 
 // Ticket types
@@ -42,6 +44,10 @@ export interface Ticket {
   pointChange?: PointChange;
   changelog?: ChangelogEntry[];
   isCarryOver?: boolean;
+  // Participants from JIRA whose accountId isn't in the team roster — surfaced
+  // by the Team Settings "Detect from current sprint" feature so new members
+  // can be added without manual accountId lookup.
+  unknownParticipants?: Array<{ accountId: string; displayName: string; role: 'developer' | 'reviewer' | 'assignee'; avatarUrl?: string }>;
 }
 
 // Sprint data
@@ -183,6 +189,13 @@ export interface ChangelogEntry {
 }
 
 // Raw JIRA API response types
+// JIRA user objects carry an avatarUrls map keyed by pixel size.
+export interface JiraUserRaw {
+  accountId: string;
+  displayName: string;
+  avatarUrls?: Record<string, string>;  // e.g. { "48x48": "...", "32x32": "..." }
+}
+
 export interface JiraIssueRaw {
   key: string;
   fields: {
@@ -190,11 +203,11 @@ export interface JiraIssueRaw {
     status?: { name: string; statusCategory?: { name: string } };
     issuetype: { name: string };
     priority: { name: string };
-    assignee: { accountId: string; displayName: string } | null;
+    assignee: JiraUserRaw | null;
     labels: string[] | null;
     customfield_10031: number | null;  // Story Points
-    customfield_10124: Array<{ accountId: string; displayName: string }> | null;  // Developer (multiple)
-    customfield_10058: { accountId: string; displayName: string } | Array<{ accountId: string; displayName: string }> | null;  // Reviewer (can be single or multiple)
+    customfield_10124: JiraUserRaw[] | null;  // Developer (multiple)
+    customfield_10058: JiraUserRaw | JiraUserRaw[] | null;  // Reviewer (can be single or multiple)
     customfield_10020: Array<{ id: number; name: string }> | null;  // Sprint
     resolutiondate: string | null;
   };

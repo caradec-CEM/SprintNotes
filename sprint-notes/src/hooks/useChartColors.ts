@@ -16,6 +16,7 @@ const lightColors = {
   dev: '#6BB8D9',          // Community Cyan — deeper, more punch
   review: '#3A6B9F',       // Insight Blue — richer blue
   normalized: '#7B5EA7',   // Violet — more saturated
+  expected: '#56878a',     // Teal — expected/baseline line (subordinate to actuals)
   ptoLabel: '#d1962e',     // Scatter Gold
   it: '#C8841A',           // Scatter Gold — deeper gold
   cursorFill: 'rgba(0, 0, 0, 0.06)',
@@ -31,6 +32,7 @@ const darkColors = {
   dev: '#7EC8B8',          // Mint — richer
   review: '#4A75A3',       // Insight Blue — review bars
   normalized: '#C4B8E0',   // Lavender — more saturated
+  expected: '#98cec2',     // Mint — expected/baseline line
   ptoLabel: '#d1962e',     // Scatter Gold
   it: '#d1962e',           // Scatter Gold — IT helpdesk
   cursorFill: 'rgba(255, 255, 255, 0.08)',

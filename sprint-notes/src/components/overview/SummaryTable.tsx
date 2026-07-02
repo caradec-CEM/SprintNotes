@@ -1,14 +1,16 @@
 import { useSprintStore } from '../../stores/sprintStore';
 import { useNotesStore } from '../../stores/notesStore';
-import { TEAM_MEMBERS } from '../../config/team';
+import { useActiveMembers } from '../../stores/teamStore';
 import { calculateEngineerMetrics } from '../../stores/historyStore';
 import { DEFAULT_SPRINT_CAPACITY, DEFAULT_TIME_OFF, computePtsPerDay } from '../../utils/capacityUtils';
+import { Avatar } from '../common';
 import './SummaryTable.css';
 
 export function SummaryTable() {
   const currentSprint = useSprintStore((state) => state.currentSprint);
   const sprintNotes = useNotesStore((state) => state.sprintNotes);
   const updateEngineerTimeOff = useNotesStore((state) => state.updateEngineerTimeOff);
+  const members = useActiveMembers();
 
   if (!currentSprint) {
     return <div className="summary-table__empty">No sprint data loaded</div>;
@@ -18,7 +20,7 @@ export function SummaryTable() {
   const capacity = notes?.capacity ?? DEFAULT_SPRINT_CAPACITY;
 
   // Calculate metrics for each team member
-  const data = TEAM_MEMBERS.map((member) => {
+  const data = members.map((member) => {
     const metrics = calculateEngineerMetrics(member.id, currentSprint.tickets);
     const timeOff = notes?.timeOff?.[member.id] ?? { ...DEFAULT_TIME_OFF, workingDays: capacity.effectiveSprintDays };
     const totalPts = metrics.devPts + metrics.reviewPts;
@@ -75,14 +77,11 @@ export function SummaryTable() {
           {data.map(({ member, metrics, totalPts, ptoDays, ptsPerDay, capacityPct }) => (
             <tr key={member.id}>
               <td className="summary-table__name">
-                {member.avatarUrl && (
-                  <img
-                    src={member.avatarUrl}
-                    alt=""
-                    className="summary-table__avatar"
-                  />
-                )}
+                <Avatar name={member.name} src={member.avatarUrl} className="summary-table__avatar" />
                 {member.name}
+                {member.role === 'admin' && (
+                  <span className="summary-table__role-badge">Admin</span>
+                )}
               </td>
               <td className="summary-table__pto">
                 <input

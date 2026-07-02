@@ -38,6 +38,17 @@
   border-radius: 50%;
 }
 
+.summary-table__role-badge {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--color-tint-violet-bg, color-mix(in srgb, var(--color-text-subtle) 18%, transparent));
+  color: var(--color-tint-violet-text, var(--color-text-subtle));
+}
+
 .summary-table__pts {
   font-weight: 600;
   color: var(--color-success);

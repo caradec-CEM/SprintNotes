@@ -10,7 +10,7 @@ import {
 } from 'recharts';
 import { useSprintStore } from '../../stores/sprintStore';
 import { useNotesStore } from '../../stores/notesStore';
-import { TEAM_MEMBERS } from '../../config/team';
+import { useActiveMembers } from '../../stores/teamStore';
 import { calculateEngineerMetrics } from '../../stores/historyStore';
 import { useChartColors } from '../../hooks/useChartColors';
 import './LoadBalanceChart.css';
@@ -18,6 +18,7 @@ import './LoadBalanceChart.css';
 export function LoadBalanceChart() {
   const currentSprint = useSprintStore((state) => state.currentSprint);
   const getEngineerTimeOff = useNotesStore((state) => state.getEngineerTimeOff);
+  const members = useActiveMembers();
 
   const cc = useChartColors();
 
@@ -26,7 +27,7 @@ export function LoadBalanceChart() {
   }
 
   // Calculate metrics for each team member
-  const data = TEAM_MEMBERS.map((member) => {
+  const data = members.map((member) => {
     const metrics = calculateEngineerMetrics(member.id, currentSprint.tickets);
     const timeOff = getEngineerTimeOff(currentSprint.id, member.id);
     return {

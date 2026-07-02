@@ -1,5 +1,5 @@
 import type { Ticket, StatusSpan } from '../types';
-import { TEAM_MEMBERS } from '../config/team';
+import { getActiveMembers } from '../stores/teamStore';
 import { calculateBusinessDays } from './dateUtils';
 
 /** Minimum review span duration (business days) to be worth flagging */
@@ -109,7 +109,7 @@ export function detectBottlenecks(
   const allTickets = [...doneTickets, ...inFlightTickets];
   const entries: BottleneckEntry[] = [];
 
-  for (const member of TEAM_MEMBERS) {
+  for (const member of getActiveMembers()) {
     const developingTickets: Ticket[] = [];
     const reviewingTickets: Ticket[] = [];
 

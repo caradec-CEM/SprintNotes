@@ -8,7 +8,8 @@
 
 import type { Ticket, SprintData, SprintCapacity, EngineerTimeOff, SprintSummary } from '../types';
 import { getPrimaryPlatform } from '../config/labels';
-import { TEAM_MEMBERS } from '../config/team';
+import { getEngineerMembers } from '../stores/teamStore';
+import { computeTeamCapacityPercent, computeExpectedPoints } from './capacityUtils';
 import { generateText } from '../services/claudeService';
 
 // ── Types ────────────────────────────────────────────────────────────
@@ -119,33 +120,40 @@ export function generateSlide2Metrics(
 
 // ── Slide 2: Narrative (LLM-assisted) ───────────────────────────────
 
-const NARRATIVE_SYSTEM_PROMPT = `You write sprint review narratives for an engineering team's demo deck.
-Write 2-4 sentences that describe the sprint's focus and briefly characterize the work across platforms.
+const NARRATIVE_SYSTEM_PROMPT = `You write the opening narrative for an engineering team's sprint demo deck.
 
-Rules:
-- Use past tense. Be factual, concise, professional.
-- Do NOT use bullet points. Write a short paragraph.
+This narrative goes on Slide 1. Slide 2 enumerates the features and fixes that were delivered. Your job is NOT to recap what was built — that would make Slide 2 redundant. Your job is to frame HOW the sprint went and WHY.
+
+Focus on:
+- Sprint outcome: points delivered vs the capacity-adjusted expectation, stated in POINTS (e.g. "40 points, 4 over the expected 36"). Never use percentages.
+- Team capacity: PTO, holidays, headcount changes, effective working days.
+- Carry-over context: was the team carrying a heavy load from last sprint? Did that help or hurt?
+- Contributing factors: scope creep, elevated IT/support volume, blockers, sprint length.
+- At most ONE high-level mention of where the bulk of effort went (e.g. "the bulk of investment went to CEM Collect"). Do NOT name multiple platforms. Do NOT describe themes, work types, or what was delivered on each platform.
+
+Hard rules:
+- 2-3 sentences. Past tense. Factual, concise, professional.
+- No bullet points. No platform-by-platform breakdown.
+- Express all comparisons as absolute NUMBERS, never percentages — points for velocity, ticket counts for IT volume. Always cite the expected figure alongside the actual (e.g. "36 points against an expected 38", "18 IT tickets vs the usual 12").
+- Do NOT list features, themes, or work types. Do NOT use words like "delivered", "completed", "implemented", "advanced", "resolved" — those belong on Slide 2.
 - Do NOT start with "During this sprint" — vary the opening.
-- Always mention the major platforms and briefly characterize the KIND of work done on each (e.g. "lifecycle hardening", "deployment stabilization", "multi-language support") rather than just naming the platforms. Use the ticket summaries provided to identify themes.
-- Keep it to 2-4 sentences total. Don't describe every ticket — synthesize into themes.
-- If capacity, velocity, or carry-over are notable, weave them in naturally.
 
-Here are real examples from past sprint decks to match the tone and content:
+Examples of the right framing:
 
-Example 1 (heavy single-platform sprint):
-"This sprint was heavily weighted toward Template Safari, with most points focused on mandate lifecycle hardening, Excel generation, and deployment stabilization. There was also meaningful Survey work across both V1 and V2, plus a smaller but important set of CEMQ and infrastructure items, including hotfixes and production deployments."
+Example 1 (strong sprint, heavy carry-over):
+"The team put up 48 points against an expected 42, six over target despite a heavy carry-over load from the previous sprint, with the bulk of investment going to CEM Collect. IT helpdesk volume ran high at 18 tickets versus the usual 12, adding background pressure on the team's bandwidth."
 
 Example 2 (capacity-impacted sprint):
-"The team was down 1-2 engineers for most of the sprint due to PTO, leading to slightly lower story points than usual. Work was spread across Survey enhancements and Dashboard stability fixes, with a few carry-over items from the previous sprint."
+"Down two engineers for most of the sprint due to PTO, the team landed 31 points against an expected 39 — eight under target. Carry-over from the previous sprint was minimal, so the shortfall reflects available capacity rather than scope changes."
 
-Example 3 (strong sprint with carry-overs):
-"Points completed were higher than average, likely due to semi-completed carry-over work from the previous sprint being closed out early. The team delivered Template Safari integration and migration work, Survey locale validation, and CEMQ document ingestion improvements."
+Example 3 (short/holiday sprint):
+"A holiday-shortened sprint left the team with only 7 effective working days. The 28 points delivered landed right on the ~29 expected at reduced capacity, with most of the available bandwidth going to CEM Collect."
 
-Example 4 (short/holiday sprint):
-"Short sprint due to the holidays — the team had only 7 effective working days. Despite the reduced capacity, the team completed a solid set of Dashboard reporting improvements and Survey accessibility fixes."
+Example 4 (overcommitted sprint):
+"The team closed 34 points against an expected 41, seven short of target, with a high carry-over ratio suggesting last sprint was overcommitted. Steady scope creep through the sprint and elevated IT volume contributed to the lower throughput."
 
-Example 5 (overcommitted sprint with scope creep):
-"The team closed below our usual velocity this sprint, spread thin across Template Safari launch prep, Survey V2 enhancements, and ongoing CEMQ admin tooling. Steady scope creep from the Template Safari launch work contributed to the lower throughput."`;
+Example 5 (clean, on-pace sprint):
+"The team delivered 40 points, right on its expected mark with no notable capacity disruptions. Carry-over from the previous sprint was light and IT volume was in a normal range."`;
 
 export type GeneratedText = { text: string; source: 'ai' | 'fallback' };
 
@@ -158,32 +166,24 @@ export async function generateSlide2Narrative(
 ): Promise<GeneratedText> {
   const cpTickets = tickets.filter((t) => t.project === 'CP');
 
-  // Top platforms by point total
+  // Dominant platform (single signal — name only, for framing)
   const platformPoints = new Map<string, number>();
   for (const t of cpTickets) {
-    const plat = getPrimaryPlatform(t.labels);
+    const plat = toDemoDeckPlatformName(getPrimaryPlatform(t.labels));
     platformPoints.set(plat, (platformPoints.get(plat) ?? 0) + t.points);
   }
-  const sortedPlatforms = [...platformPoints.entries()]
-    .sort((a, b) => b[1] - a[1]);
-  const topPlatforms = sortedPlatforms
-    .slice(0, 4)
-    .map(([name, pts]) => `${name} (${pts} pts)`);
-
-  // Platform distribution percentages
   const totalPts = cpTickets.reduce((sum, t) => sum + t.points, 0);
-  const platformPcts = sortedPlatforms.map(([name, pts]) => {
-    const pct = totalPts > 0 ? Math.round((pts / totalPts) * 100) : 0;
-    return { name, pts, pct };
-  });
-  const dominantPlatform = platformPcts.length > 0 && platformPcts[0].pct > 40
-    ? platformPcts[0] : null;
+  const sortedPlatforms = [...platformPoints.entries()].sort((a, b) => b[1] - a[1]);
+  const topPct = sortedPlatforms.length > 0 && totalPts > 0
+    ? Math.round((sortedPlatforms[0][1] / totalPts) * 100) : 0;
+  const dominantPlatform = topPct > 40 ? sortedPlatforms[0][0] : null;
 
-  // PTO summary
-  const ptoEngineers = TEAM_MEMBERS
+  // PTO summary (engineers only — admins aren't part of the capacity denominator)
+  const engineerTeam = getEngineerMembers();
+  const ptoEngineers = engineerTeam
     .filter((m) => timeOff[m.id] && timeOff[m.id].ptoDays > 0)
     .map((m) => `${m.name}: ${timeOff[m.id].ptoDays}d PTO`);
-  const totalPtoDays = TEAM_MEMBERS.reduce(
+  const totalPtoDays = engineerTeam.reduce(
     (sum, m) => sum + (timeOff[m.id]?.ptoDays ?? 0), 0
   );
 
@@ -199,47 +199,43 @@ export async function generateSlide2Narrative(
   const avgPts = recentPts.length > 0
     ? Math.round(recentPts.reduce((a, b) => a + b, 0) / recentPts.length)
     : null;
-  const velocityDiffPct = avgPts !== null && avgPts > 0
-    ? Math.round(((totalPts - avgPts) / avgPts) * 100) : null;
+  const rawDiffPts = avgPts !== null ? totalPts - avgPts : null;
 
   // Capacity shortfall
   const daysLost = capacity.defaultWorkingDays - capacity.effectiveSprintDays;
 
-  // Per-platform ticket summaries for work theme characterization
-  const platformTicketMap = new Map<string, Ticket[]>();
-  for (const t of cpTickets) {
-    const plat = getPrimaryPlatform(t.labels);
-    if (!platformTicketMap.has(plat)) platformTicketMap.set(plat, []);
-    platformTicketMap.get(plat)!.push(t);
-  }
-  const platformBreakdown = sortedPlatforms
-    .map(([name]) => {
-      const platTickets = platformTicketMap.get(name) ?? [];
-      // Show top tickets by points to give the LLM material for theme characterization
-      const top = [...platTickets]
-        .sort((a, b) => b.points - a.points)
-        .slice(0, 5)
-        .map((t) => `${t.key} (${t.points}pts): ${t.summary}`);
-      return `${name}:\n  ${top.join('\n  ')}`;
-    })
-    .join('\n');
+  // Capacity-adjusted expectation: scale the recent average down by this sprint's
+  // team capacity % (which already folds in both PTO and holidays via workingDays).
+  // The headline outcome compares actual points against THIS expected figure — not
+  // the raw average — so a low-capacity sprint isn't wrongly flagged as "under".
+  const engineerTimeOffs = engineerTeam.map((m) =>
+    timeOff[m.id] ?? { ptoDays: 0, workingDays: capacity.effectiveSprintDays }
+  );
+  const capacityPercent = computeTeamCapacityPercent(engineerTimeOffs, capacity.defaultWorkingDays);
+  const expectedPts = avgPts !== null ? computeExpectedPoints(avgPts, capacityPercent) : null;
+  // Delta in POINTS (not %): positive = over expected, negative = under.
+  const ptsVsExpected = expectedPts !== null ? totalPts - expectedPts : null;
 
-  // Build enriched context for LLM
+  // Build context for LLM — outcome + capacity + factors only.
+  // Intentionally omits per-platform ticket breakdowns; that detail belongs on Slide 2.
   const context = [
     `Sprint: ${sprint.name}`,
-    `Top platforms: ${topPlatforms.join(', ')}`,
-    `Platform distribution: ${platformPcts.map((p) => `${p.name} ${p.pct}%`).join(', ')}`,
     dominantPlatform
-      ? `Dominant platform: ${dominantPlatform.name} at ${dominantPlatform.pct}% of points — sprint was heavily weighted toward this platform.`
-      : 'Work was spread across multiple platforms — no single platform dominated.',
-    `\nTickets by platform (use these to characterize the work themes):\n${platformBreakdown}`,
-    `Total points completed: ${totalPts}${avgPts !== null ? ` (team avg: ${avgPts}, ${velocityDiffPct !== null && velocityDiffPct >= 0 ? '+' : ''}${velocityDiffPct}% ${velocityDiffPct !== null && velocityDiffPct >= 0 ? 'above' : 'below'} average)` : ''}`,
+      ? `Bulk of investment went to ${dominantPlatform} (${topPct}% of points). Mention this once at most — do not enumerate other platforms.`
+      : 'No single platform dominated — do not name platforms in the narrative.',
+    `Total points completed: ${totalPts}`,
+    expectedPts !== null
+      ? `Capacity-adjusted expectation: ~${expectedPts} points this sprint (team avg ${avgPts} scaled to ${capacityPercent}% capacity). Actual ${totalPts} = ${ptsVsExpected === 0 ? 'exactly on target' : `${Math.abs(ptsVsExpected!)} point${Math.abs(ptsVsExpected!) !== 1 ? 's' : ''} ${ptsVsExpected! > 0 ? 'over' : 'under'} the expected ~${expectedPts}`}. THIS is the real outcome — use it as the headline. State it in POINTS (e.g. "X points, Y over/under the expected Z"), never as a percentage.`
+      : avgPts !== null ? `Team average: ${avgPts} points (no capacity adjustment available)` : 'No velocity baseline available.',
+    avgPts !== null
+      ? `For context only (do NOT lead with this): ${rawDiffPts === 0 ? 'raw points matched the' : `raw points were ${Math.abs(rawDiffPts!)} ${rawDiffPts! > 0 ? 'over' : 'under'} the`} unadjusted ${avgPts}-pt average.`
+      : '',
     `Effective sprint days: ${capacity.effectiveSprintDays} of ${capacity.defaultWorkingDays}${daysLost > 0 ? ` (${daysLost} day${daysLost !== 1 ? 's' : ''} lost to holidays)` : ''}`,
     totalPtoDays > 0
-      ? `PTO impact: team was down ${totalPtoDays} engineer-day${totalPtoDays !== 1 ? 's' : ''} (${ptoEngineers.join('; ')})`
+      ? `PTO impact: team was down ${totalPtoDays} engineer-day${totalPtoDays !== 1 ? 's' : ''} (${ptoEngineers.join('; ')}), reflected in the ${capacityPercent}% capacity figure above.`
       : 'No PTO this sprint.',
     `Carry-over tickets: ${carryOverCount} of ${cpTickets.length} total${carryOverRatio > 0.25 ? ' — high carry-over ratio suggests overcommitment last sprint' : ''}`,
-    `Team size: ${TEAM_MEMBERS.length} engineers`,
+    `Team size: ${engineerTeam.length} engineers`,
     (() => {
       const itTickets = tickets.filter((t) => t.project === 'IT');
       const itTicketCount = itTickets.length;
@@ -250,64 +246,71 @@ export async function generateSlide2Narrative(
         ? Math.round(itHistoryCounts.reduce((a, b) => a + b, 0) / itHistoryCounts.length)
         : null;
       if (itHistoryAvg !== null && itHistoryAvg > 0) {
-        const itPctDiff = Math.round(((itTicketCount - itHistoryAvg) / itHistoryAvg) * 100);
-        const aboveBelow = itPctDiff >= 0 ? 'above' : 'below';
-        const line = `IT Helpdesk tickets: ${itTicketCount} (avg: ${itHistoryAvg}, ${itPctDiff >= 0 ? '+' : ''}${itPctDiff}% ${aboveBelow} average)`;
-        return itPctDiff > 20 ? `${line} — higher than usual IT volume` : line;
+        const itDelta = itTicketCount - itHistoryAvg;
+        const aboveBelow = itDelta >= 0 ? 'above' : 'below';
+        const line = `IT Helpdesk tickets: ${itTicketCount} (avg ${itHistoryAvg}, ${Math.abs(itDelta)} ${aboveBelow} average) — express in ticket counts, not percentages`;
+        // Flag as notable when meaningfully above the usual volume (>20% over).
+        return itDelta > itHistoryAvg * 0.2 ? `${line}; higher than usual IT volume` : line;
       }
       return `IT Helpdesk tickets: ${itTicketCount}`;
     })(),
-  ].join('\n');
+  ].filter(Boolean).join('\n');
 
   const result = await generateText(NARRATIVE_SYSTEM_PROMPT, context);
 
   if (result) return { text: result, source: 'ai' as const };
 
-  // ── Deterministic fallback: assemble 2-3 sentences from data ──
+  // ── Deterministic fallback: outcome-first, no feature enumeration ──
 
   const sentences: string[] = [];
 
-  // Sentence 1: Platform focus
-  const platNames = sortedPlatforms.map(([name]) => name);
-  if (dominantPlatform && platNames.length > 1) {
-    const others = platNames.slice(1, 3).join(' and ');
-    sentences.push(
-      `This sprint was heavily focused on ${dominantPlatform.name}, with additional work on ${others}.`
-    );
-  } else if (platNames.length > 0) {
-    const listed = platNames.slice(0, 3).join(', ');
-    sentences.push(`This sprint was primarily focused on ${listed}.`);
-  }
-
-  // Sentence 2 (conditional): Capacity note
-  if (daysLost > 0 && totalPtoDays > 0) {
-    sentences.push(
-      `The team had a shortened sprint (${capacity.effectiveSprintDays} of ${capacity.defaultWorkingDays} days) and was down ${totalPtoDays} engineer-day${totalPtoDays !== 1 ? 's' : ''} due to PTO.`
-    );
-  } else if (daysLost > 0) {
-    sentences.push(
-      `The team had a shortened sprint with only ${capacity.effectiveSprintDays} effective working days due to holidays.`
-    );
-  } else if (totalPtoDays > 0) {
-    sentences.push(
-      `The team was down ${totalPtoDays} engineer-day${totalPtoDays !== 1 ? 's' : ''} due to PTO.`
-    );
-  }
-
-  // Sentence 3 (conditional): Velocity note
-  if (velocityDiffPct !== null && Math.abs(velocityDiffPct) >= 10) {
-    if (velocityDiffPct > 0) {
+  // Sentence 1: Velocity outcome vs the capacity-adjusted expectation (not raw avg),
+  // so PTO/holiday-shortened sprints aren't wrongly described as under-delivering.
+  // Stated in points, not percentages.
+  if (ptsVsExpected !== null && capacityPercent < 100 && expectedPts !== null) {
+    if (Math.abs(ptsVsExpected) <= 2) {
       sentences.push(
-        `Points completed (${totalPts}) were above the team's usual average of ${avgPts}.`
+        `The team delivered ${totalPts} points, on target with the ~${expectedPts} expected at ${capacityPercent}% capacity this sprint.`
       );
     } else {
+      const direction = ptsVsExpected > 0 ? 'over' : 'under';
       sentences.push(
-        `Points completed (${totalPts}) were below the team's usual average of ${avgPts}.`
+        `The team delivered ${totalPts} points, ${Math.abs(ptsVsExpected)} ${direction} the ~${expectedPts} expected once PTO and holidays are factored in.`
       );
     }
+  } else if (rawDiffPts !== null && Math.abs(rawDiffPts) >= 3 && avgPts !== null) {
+    const direction = rawDiffPts > 0 ? 'over' : 'under';
+    sentences.push(
+      `The team delivered ${totalPts} points, ${Math.abs(rawDiffPts)} ${direction} the usual average of ${avgPts}.`
+    );
+  } else if (avgPts !== null) {
+    sentences.push(
+      `The team delivered ${totalPts} points, in line with the usual average of ${avgPts}.`
+    );
+  } else {
+    sentences.push(`The team completed ${totalPts} points this sprint.`);
   }
 
-  // Sentence 4 (conditional): IT ticket volume note
+  // Sentence 2: Capacity context (PTO, holidays, carry-over)
+  const capacityNotes: string[] = [];
+  if (daysLost > 0) {
+    capacityNotes.push(
+      `a shortened sprint (${capacity.effectiveSprintDays} of ${capacity.defaultWorkingDays} days)`
+    );
+  }
+  if (totalPtoDays > 0) {
+    capacityNotes.push(
+      `${totalPtoDays} engineer-day${totalPtoDays !== 1 ? 's' : ''} of PTO`
+    );
+  }
+  if (carryOverRatio > 0.25) {
+    capacityNotes.push('a heavy carry-over load from the previous sprint');
+  }
+  if (capacityNotes.length > 0) {
+    sentences.push(`The team navigated ${capacityNotes.join(' and ')}.`);
+  }
+
+  // Sentence 3 (conditional): IT volume as background pressure
   const fallbackItTickets = tickets.filter((t) => t.project === 'IT');
   const fallbackItCount = fallbackItTickets.length;
   const fallbackItHistoryCounts = recentSprints
@@ -317,12 +320,17 @@ export async function generateSlide2Narrative(
     ? Math.round(fallbackItHistoryCounts.reduce((a, b) => a + b, 0) / fallbackItHistoryCounts.length)
     : null;
   if (fallbackItAvg !== null && fallbackItAvg > 0) {
-    const fallbackItPct = Math.round(((fallbackItCount - fallbackItAvg) / fallbackItAvg) * 100);
-    if (fallbackItPct > 20) {
+    const fallbackItDelta = fallbackItCount - fallbackItAvg;
+    if (fallbackItDelta > fallbackItAvg * 0.2) {
       sentences.push(
-        `IT ticket volume was higher than usual at ${fallbackItCount} (avg ${fallbackItAvg}), which may have impacted delivery capacity.`
+        `IT helpdesk volume ran high at ${fallbackItCount} tickets (${fallbackItDelta} above the usual ${fallbackItAvg}), adding background pressure on the team's bandwidth.`
       );
     }
+  }
+
+  // Optional one-line platform mention (only if highly dominant) — kept last so it reads as framing, not recap
+  if (dominantPlatform) {
+    sentences.push(`The bulk of investment went to ${dominantPlatform}.`);
   }
 
   return { text: sentences.join(' '), source: 'fallback' as const };
@@ -340,17 +348,18 @@ IMPORTANT: Synthesize and consolidate related tickets into themes. Do NOT list e
 
 Style guide (from 38+ actual sprint decks):
 - One line per platform, separated by newlines.
-- Features: "Template Safari: Delivered X and completed Y (CP-XXXX, CP-YYYY)."
+- Features: "CEM Collect: Delivered X and completed Y (CP-XXXX, CP-YYYY)."
 - Fixes: "Survey: Resolved X and fixed Y (CP-XXXX)."
 - Past tense verbs: Delivered, Completed, Implemented, Advanced, Resolved, Fixed, Addressed
 - Keep each platform line to 1-2 sentences max.
 - Include ticket keys in parentheses at the end of each line.
 - Do NOT use bullet points, dashes, or numbered lists.
+- Use the exact platform names provided in the input — do NOT rename or abbreviate them.
 
 Example — many tickets consolidated into themes:
-Template Safari: Delivered integration with CEM Portal and Identity Server, completed DB migration setup, and refined the Analyst View for roster management (CP-3146, CP-3147, CP-3080, CP-3078, CP-3042).
+CEM Collect: Delivered integration with CEM Portal and Identity Server, completed DB migration setup, and refined the Analyst View for roster management (CP-3146, CP-3147, CP-3080, CP-3078, CP-3042).
 Survey: Advanced multi-language support with locale-specific validation (CP-3020, CP-3022).
-CEMQ: Implemented automated document ingestion pipeline from Portal to CEMQ Admin (CP-2349).`;
+CEM Query: Implemented automated document ingestion pipeline from Portal to CEM Query Admin (CP-2349).`;
 
 interface PlatformGroup {
   platform: string;
@@ -358,11 +367,21 @@ interface PlatformGroup {
   tickets: Array<{ key: string; summary: string; points: number }>;
 }
 
+// Display-name overrides used only in demo deck output (not elsewhere in the app)
+// (CEMQ/CEMQuery already resolve to "CEM Query" via labels.ts display names.)
+const DEMO_DECK_PLATFORM_NAMES: Record<string, string> = {
+  'Template Safari': 'CEM Collect',
+};
+
+function toDemoDeckPlatformName(platform: string): string {
+  return DEMO_DECK_PLATFORM_NAMES[platform] ?? platform;
+}
+
 function groupTicketsByPlatform(tickets: Ticket[]): PlatformGroup[] {
   const groups = new Map<string, Array<{ key: string; summary: string; points: number }>>();
 
   for (const t of tickets) {
-    const platform = getPrimaryPlatform(t.labels);
+    const platform = toDemoDeckPlatformName(getPrimaryPlatform(t.labels));
     if (!groups.has(platform)) groups.set(platform, []);
     groups.get(platform)!.push({ key: t.key, summary: t.summary, points: t.points });
   }
@@ -456,4 +475,78 @@ export async function generateSlide3Content(
   }
 
   return { features, fixes };
+}
+
+// ── Demo Candidates (LLM-assisted) ───────────────────────────────────
+
+const DEMO_CANDIDATES_SYSTEM_PROMPT = `You curate a list of demo-worthy tickets for a sprint review meeting.
+
+Given a grouped list of completed tickets, select the ones most worth demoing and rewrite their summaries to be demo-friendly (clear, concise, audience-appropriate for stakeholders).
+
+Demo-worthy means VISUALLY DEMONSTRABLE to a non-technical audience. Prioritize:
+- UI changes, new screens, new user-facing flows
+- Visible branding, layout, or form changes
+- Features end-users or clients interact with directly
+- Bug fixes that caused visible problems for real users (e.g. data not saving, broken exports)
+
+DROP tickets that are NOT demo-friendly, including:
+- Audit logs, change logs, activity tracking (backend, not visual)
+- Database tables, config tables, migrations (infrastructure)
+- Startup guards, health checks, dependency validation (ops)
+- Internal tooling, refactors, code cleanup
+- Readme updates, deployment tasks
+- Hotfixes that only affect internal systems
+
+Rules:
+- Keep the exact output format: platform name on its own line, then ticket lines below it.
+- Each ticket line: "CP-XXXX (Npts) — Demo-friendly summary"
+- Rewrite JIRA-style summaries into plain language a non-technical stakeholder would understand (e.g. "Add validation to mandate lifecycle Excel export" → "Excel exports now validate mandate lifecycle rules before generating").
+- Keep platform grouping and points-descending order intact.
+- If a platform has no demo-worthy tickets after filtering, drop the entire platform group.
+- Do NOT add commentary, headers, or bullet points — just the formatted list.`;
+
+function buildDemoCandidatesFallback(groups: PlatformGroup[]): string {
+  return groups
+    .map((g) => {
+      const lines = g.tickets.map(
+        (t) => `${t.key} (${t.points}pts) — ${t.summary}`
+      );
+      return `${g.platform}\n${lines.join('\n')}`;
+    })
+    .join('\n\n');
+}
+
+export async function generateDemoCandidates(
+  tickets: Ticket[]
+): Promise<GeneratedText> {
+  const candidates = tickets.filter(
+    (t) =>
+      t.project === 'CP' &&
+      !t.labels.includes('Recurring') &&
+      getPrimaryPlatform(t.labels) !== 'Other'
+  );
+
+  const groups = groupTicketsByPlatform(candidates);
+
+  if (groups.length === 0) {
+    return { text: '', source: 'fallback' };
+  }
+
+  const context = groups
+    .map((g) => {
+      const items = g.tickets
+        .map((t) => `  ${t.key} (${t.points}pts) — ${t.summary}`)
+        .join('\n');
+      return `${g.platform} (${g.totalPoints} pts total):\n${items}`;
+    })
+    .join('\n\n');
+
+  const result = await generateText(
+    DEMO_CANDIDATES_SYSTEM_PROMPT,
+    `Select and rewrite the most demo-worthy tickets from this sprint:\n\n${context}`
+  );
+
+  if (result) return { text: result, source: 'ai' };
+
+  return { text: buildDemoCandidatesFallback(groups), source: 'fallback' };
 }

@@ -122,6 +122,7 @@ export function TeamTrends() {
                 itemStyle={{ color: cc.text }}
                 formatter={(value: number, name: string) => {
                   if (name === 'Adjusted') return [`${value} pts`, 'Adjusted (100% capacity)'];
+                  if (name === 'Expected') return [`${value} pts`, 'Expected (avg × capacity)'];
                   return [`${value} pts`, 'Total Points'];
                 }}
                 labelFormatter={(label, payload) => {
@@ -158,6 +159,16 @@ export function TeamTrends() {
                   connectNulls
                 />
               )}
+              <Line
+                type="monotone"
+                dataKey="expectedTotal"
+                stroke={cc.expected}
+                strokeWidth={1.5}
+                strokeDasharray="2 4"
+                dot={{ fill: cc.expected, strokeWidth: 1, r: 2 }}
+                name="Expected"
+                connectNulls
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>

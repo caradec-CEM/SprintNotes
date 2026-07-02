@@ -3,6 +3,7 @@ import { useEngineerData } from '../../hooks/useEngineerData';
 import { useSprintStore } from '../../stores/sprintStore';
 import { useNotesStore } from '../../stores/notesStore';
 import { DEFAULT_SPRINT_CAPACITY, DEFAULT_TIME_OFF } from '../../utils/capacityUtils';
+import { Avatar } from '../common';
 import { Section } from '../layout';
 import { MetricsGrid } from './MetricsGrid';
 import { TicketTable } from './TicketTable';
@@ -35,13 +36,7 @@ export function EngineerPanel({ engineerId }: EngineerPanelProps) {
     <div className="engineer-panel">
       {/* Header with avatar and name */}
       <div className="engineer-panel__header">
-        {member.avatarUrl && (
-          <img
-            src={member.avatarUrl}
-            alt={member.name}
-            className="engineer-panel__avatar"
-          />
-        )}
+        <Avatar name={member.name} src={member.avatarUrl} className="engineer-panel__avatar" />
         <div className="engineer-panel__info">
           <h2 className="engineer-panel__name">
             {member.name}

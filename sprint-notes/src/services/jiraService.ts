@@ -11,6 +11,7 @@ import type {
   Project,
   ChangelogEntry,
   JiraIssueRaw,
+  JiraUserRaw,
   JiraSprintRaw,
 } from '../types';
 
@@ -98,11 +99,38 @@ function extractChangelog(changelog?: { histories: Array<{ created: string; item
   return entries;
 }
 
+// Pick the largest readily-available avatar (48px) from a JIRA user's avatarUrls map.
+function pickAvatarUrl(user: { avatarUrls?: Record<string, string> } | null | undefined): string | undefined {
+  const urls = user?.avatarUrls;
+  if (!urls) return undefined;
+  return urls['48x48'] ?? urls['32x32'] ?? urls['24x24'] ?? Object.values(urls)[0];
+}
+
+// Accumulates accountId → avatarUrl for every JIRA user seen across all fetched
+// tickets (known team members and not). Used to auto-fill missing member avatars
+// so nobody has to paste a URL by hand. Exposed via getAvatarMap().
+const avatarRegistry = new Map<string, string>();
+
+function registerAvatar(user: JiraUserRaw | null | undefined): void {
+  if (!user?.accountId) return;
+  const url = pickAvatarUrl(user);
+  if (url) avatarRegistry.set(user.accountId, url);
+}
+
+/** Snapshot of all accountId → avatarUrl pairs harvested from fetched tickets. */
+export function getAvatarMap(): Record<string, string> {
+  return Object.fromEntries(avatarRegistry);
+}
+
 // Transform raw JIRA issue to app format
 function transformIssue(raw: JiraIssueRaw, sprintId: string): Ticket {
   const developerField = raw.fields.customfield_10124;
   const reviewerField = raw.fields.customfield_10058;
   const assigneeField = raw.fields.assignee;
+
+  // Track accountIds of people on this ticket who aren't in the team roster.
+  // The Team Settings modal uses these to suggest new members for one-click add.
+  const unknownParticipants: Ticket['unknownParticipants'] = [];
 
   // Handle multiple developers (customfield_10124 is an array)
   const developers: string[] = [];
@@ -110,6 +138,7 @@ function transformIssue(raw: JiraIssueRaw, sprintId: string): Ticket {
 
   if (developerField && Array.isArray(developerField)) {
     developerField.forEach(dev => {
+      registerAvatar(dev);
       const member = findMemberByAccountId(dev.accountId);
       if (member) {
         developers.push(member.id);
@@ -118,6 +147,9 @@ function transformIssue(raw: JiraIssueRaw, sprintId: string): Ticket {
         // Non-team member, use display name as ID
         developers.push(dev.displayName);
         developerNames.push(dev.displayName);
+        if (dev.accountId) {
+          unknownParticipants.push({ accountId: dev.accountId, displayName: dev.displayName, role: 'developer', avatarUrl: pickAvatarUrl(dev) });
+        }
       }
     });
   }
@@ -136,6 +168,7 @@ function transformIssue(raw: JiraIssueRaw, sprintId: string): Ticket {
     const reviewerArray = Array.isArray(reviewerField) ? reviewerField : [reviewerField];
     reviewerArray.forEach(rev => {
       if (rev?.accountId) {
+        registerAvatar(rev);
         reviewerAccountIds.add(rev.accountId);
         const member = findMemberByAccountId(rev.accountId);
         if (member) {
@@ -144,6 +177,7 @@ function transformIssue(raw: JiraIssueRaw, sprintId: string): Ticket {
         } else if (rev.displayName) {
           reviewers.push(rev.displayName);
           reviewerNames.push(rev.displayName);
+          unknownParticipants.push({ accountId: rev.accountId, displayName: rev.displayName, role: 'reviewer', avatarUrl: pickAvatarUrl(rev) });
         }
       }
     });
@@ -178,8 +212,12 @@ function transformIssue(raw: JiraIssueRaw, sprintId: string): Ticket {
   const reviewerName = reviewerNames[0] ?? null;
 
   // Assignee (for IT tickets)
+  registerAvatar(assigneeField);
   const assigneeAccountId = assigneeField?.accountId ?? null;
   const assigneeMember = findMemberByAccountId(assigneeAccountId);
+  if (assigneeAccountId && !assigneeMember && assigneeField?.displayName) {
+    unknownParticipants.push({ accountId: assigneeAccountId, displayName: assigneeField.displayName, role: 'assignee', avatarUrl: pickAvatarUrl(assigneeField) });
+  }
 
   // Determine project from key prefix
   const project: Project = raw.key.startsWith('IT') ? 'IT' : 'CP';
@@ -240,6 +278,7 @@ function transformIssue(raw: JiraIssueRaw, sprintId: string): Ticket {
     pointChange,
     changelog,
     isCarryOver,
+    unknownParticipants: unknownParticipants.length > 0 ? unknownParticipants : undefined,
   };
 }
 

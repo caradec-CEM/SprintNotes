@@ -64,6 +64,13 @@
   color: var(--color-tint-red-text);
 }
 
+.sprint-capacity__expected {
+  color: var(--color-text-subtle);
+  font-weight: 500;
+  cursor: help;
+  border-bottom: 1px dotted var(--color-border);
+}
+
 @media print {
   .sprint-capacity__input {
     border: none;

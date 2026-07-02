@@ -2,12 +2,13 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSprintStore, useSelectedSprint } from '../../stores/sprintStore';
 import { useNotesStore } from '../../stores/notesStore';
 import { useHistoryStore } from '../../stores/historyStore';
-import { TEAM_MEMBERS } from '../../config/team';
+import { useEngineerMembers } from '../../stores/teamStore';
 import {
   generateSlide2Summary,
   generateSlide2Metrics,
   generateSlide2Narrative,
   generateSlide3Content,
+  generateDemoCandidates,
 } from '../../utils/demoDeckUtils';
 import type { EngineerTimeOff } from '../../types';
 import './DemoDeckText.css';
@@ -29,18 +30,22 @@ export function DemoDeckText() {
   const getSprintCapacity = useNotesStore((s) => s.getSprintCapacity);
   const getEngineerTimeOff = useNotesStore((s) => s.getEngineerTimeOff);
   const getRecentSprints = useHistoryStore((s) => s.getRecentSprints);
+  const engineerMembers = useEngineerMembers();
 
   const [slide2Summary, setSlide2Summary] = useState('');
   const [slide2Metrics, setSlide2Metrics] = useState('');
   const [slide2Narrative, setSlide2Narrative] = useState('');
   const [slide3Features, setSlide3Features] = useState('');
   const [slide3Fixes, setSlide3Fixes] = useState('');
+  const [demoCandidates, setDemoCandidates] = useState('');
   const [narrativeLoading, setNarrativeLoading] = useState(false);
   const [slide3Loading, setSlide3Loading] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [narrativeSource, setNarrativeSource] = useState<TextSource>(null);
   const [featuresSource, setFeaturesSource] = useState<TextSource>(null);
   const [fixesSource, setFixesSource] = useState<TextSource>(null);
+  const [demoCandidatesLoading, setDemoCandidatesLoading] = useState(false);
+  const [demoCandidatesSource, setDemoCandidatesSource] = useState<TextSource>(null);
 
   // Track the sprint ID so we can re-generate on sprint change
   const prevSprintId = useRef<string | null>(null);
@@ -52,7 +57,7 @@ export function DemoDeckText() {
 
     const capacity = getSprintCapacity(currentSprint.id);
     const timeOff: Record<string, EngineerTimeOff> = {};
-    for (const m of TEAM_MEMBERS) {
+    for (const m of engineerMembers) {
       timeOff[m.id] = getEngineerTimeOff(currentSprint.id, m.id);
     }
     const recentSprints = getRecentSprints(6, currentSprint.id);
@@ -89,7 +94,18 @@ export function DemoDeckText() {
     } finally {
       setSlide3Loading(false);
     }
-  }, [currentSprint, getSprintCapacity, getEngineerTimeOff, getRecentSprints]);
+
+    // Demo Candidates
+    setDemoCandidatesLoading(true);
+    setDemoCandidatesSource(null);
+    try {
+      const candidates = await generateDemoCandidates(currentSprint.tickets);
+      setDemoCandidates(candidates.text);
+      setDemoCandidatesSource(candidates.source);
+    } finally {
+      setDemoCandidatesLoading(false);
+    }
+  }, [currentSprint, getSprintCapacity, getEngineerTimeOff, getRecentSprints, engineerMembers]);
 
   // Compute deterministic data immediately; fire LLM calls async
   useEffect(() => {
@@ -106,11 +122,11 @@ export function DemoDeckText() {
     setSlide2Metrics(
       generateSlide2Metrics(currentSprint.tickets, sprintState, inFlightTickets)
     );
-
     // Reset LLM fields before regenerating
     setSlide2Narrative('');
     setSlide3Features('');
     setSlide3Fixes('');
+    setDemoCandidates('');
 
     // Fire LLM calls
     generateLLMContent();
@@ -134,6 +150,7 @@ export function DemoDeckText() {
     { label: 'Slide 2 — Narrative', value: slide2Narrative, loading: narrativeLoading, rows: 3, source: narrativeSource },
     { label: 'Slide 3 — Key Features', value: slide3Features, loading: slide3Loading, rows: 6, source: featuresSource },
     { label: 'Slide 3 — Key Fixes', value: slide3Fixes, loading: slide3Loading, rows: 4, source: fixesSource },
+    { label: 'Demo Candidates', value: demoCandidates, loading: demoCandidatesLoading, rows: 8, source: demoCandidatesSource },
   ];
 
   // Map label -> setter
@@ -143,9 +160,10 @@ export function DemoDeckText() {
     'Slide 2 — Narrative': setSlide2Narrative,
     'Slide 3 — Key Features': setSlide3Features,
     'Slide 3 — Key Fixes': setSlide3Fixes,
+    'Demo Candidates': setDemoCandidates,
   };
 
-  const isLLMLoading = narrativeLoading || slide3Loading;
+  const isLLMLoading = narrativeLoading || slide3Loading || demoCandidatesLoading;
 
   return (
     <div className="demo-deck">

@@ -33,3 +33,13 @@ export function computePtsPerDay(totalPts: number, workingDays: number): number 
 export function computeNormalizedVelocity(rawVelocity: number, capacityPercent: number): number | null {
   return capacityPercent > 0 ? rawVelocity / (capacityPercent / 100) : null;
 }
+
+// Expected points = baseline (recent avg) scaled to this sprint's capacity.
+// e.g. baseline 50 pts at 88% capacity → ~44 expected pts.
+export function computeExpectedPoints(
+  baselinePoints: number,
+  capacityPercent: number
+): number | null {
+  if (baselinePoints <= 0 || capacityPercent <= 0) return null;
+  return Math.round(baselinePoints * (capacityPercent / 100));
+}

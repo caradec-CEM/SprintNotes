@@ -1,4 +1,5 @@
-import { TEAM_MEMBERS } from '../../config/team';
+import { useActiveMembers } from '../../stores/teamStore';
+import { Avatar } from '../common';
 import './TabBar.css';
 
 interface TabBarProps {
@@ -7,6 +8,7 @@ interface TabBarProps {
 }
 
 export function TabBar({ activeTab, onTabChange }: TabBarProps) {
+  const members = useActiveMembers();
   return (
     <nav className="tab-bar no-print">
       <button
@@ -18,20 +20,16 @@ export function TabBar({ activeTab, onTabChange }: TabBarProps) {
 
       <div className="tab-bar__divider" />
 
-      {TEAM_MEMBERS.map((member) => (
+      {members.map((member) => (
         <button
           key={member.id}
-          className={`tab-bar__tab ${activeTab === member.id ? 'tab-bar__tab--active' : ''}`}
+          className={`tab-bar__tab ${activeTab === member.id ? 'tab-bar__tab--active' : ''} ${member.role === 'admin' ? 'tab-bar__tab--admin' : ''}`}
           onClick={() => onTabChange(member.id)}
+          title={member.role === 'admin' ? `${member.name} (Admin)` : member.name}
         >
-          {member.avatarUrl && (
-            <img
-              src={member.avatarUrl}
-              alt=""
-              className="tab-bar__avatar"
-            />
-          )}
+          <Avatar name={member.name} src={member.avatarUrl} className="tab-bar__avatar" />
           <span className="tab-bar__name">{member.name.split(' ')[0]}</span>
+          {member.role === 'admin' && <span className="tab-bar__admin-dot" aria-hidden="true" />}
         </button>
       ))}
     </nav>

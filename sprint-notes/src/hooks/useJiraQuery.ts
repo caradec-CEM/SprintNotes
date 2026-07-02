@@ -1,7 +1,8 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { useSprintStore } from '../stores/sprintStore';
 import { useHistoryStore, createSprintSummary } from '../stores/historyStore';
-import { fetchSprints, fetchSprintData, fetchSprintIssues, fetchActiveSprintInFlightTickets } from '../services/jiraService';
+import { useTeamStore } from '../stores/teamStore';
+import { fetchSprints, fetchSprintData, fetchSprintIssues, fetchActiveSprintInFlightTickets, getAvatarMap } from '../services/jiraService';
 import type { Sprint } from '../types';
 
 // Hook to load available sprints
@@ -131,12 +132,16 @@ export function useSprintData() {
         );
         addSprintSummary(summary);
 
+        // Auto-fill any missing member avatars from the JIRA user data in these tickets.
+        useTeamStore.getState().enrichAvatars(getAvatarMap());
+
         // Fetch in-flight tickets for active sprints
         if (data.sprint.state === 'active') {
           setInFlightLoading(true);
           try {
             const inFlight = await fetchActiveSprintInFlightTickets(sprintId);
             setInFlightTickets(inFlight);
+            useTeamStore.getState().enrichAvatars(getAvatarMap());
           } catch (e) {
             console.warn('Failed to load in-flight tickets:', e);
           } finally {

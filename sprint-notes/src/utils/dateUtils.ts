@@ -198,6 +198,26 @@ export function calculateStatusDuration(
     spans.push({ entered: lastEntryTime, exited: null, days });
   }
 
+  // Drop stale spans: if the most recent span started more than 30 days after
+  // an earlier span ended, the earlier work is no longer relevant (e.g. ticket
+  // briefly picked up then put back months before real work began).
+  if (spans.length > 1) {
+    const lastSpan = spans[spans.length - 1];
+    const lastSpanStart = new Date(lastSpan.entered).getTime();
+    const staleThreshold = 30 * 24 * 60 * 60 * 1000; // 30 days in ms
+
+    const freshSpans = spans.filter((s) => {
+      if (s === lastSpan) return true;
+      const spanEnd = s.exited ? new Date(s.exited).getTime() : lastSpanStart;
+      return lastSpanStart - spanEnd < staleThreshold;
+    });
+
+    if (freshSpans.length < spans.length) {
+      const freshDays = freshSpans.reduce((sum, s) => sum + s.days, 0);
+      return freshDays > 0 ? { days: freshDays, isActive: currentlyInStatus, spans: freshSpans } : undefined;
+    }
+  }
+
   return totalDays > 0 ? { days: totalDays, isActive: currentlyInStatus, spans } : undefined;
 }
 

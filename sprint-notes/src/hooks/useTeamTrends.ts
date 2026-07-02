@@ -2,8 +2,8 @@ import { useMemo } from 'react';
 import { useHistoryStore } from '../stores/historyStore';
 import { useSprintStore } from '../stores/sprintStore';
 import { useNotesStore } from '../stores/notesStore';
-import { TEAM_MEMBERS } from '../config/team';
-import { DEFAULT_SPRINT_CAPACITY, DEFAULT_TIME_OFF, computeTeamCapacityPercent, computeNormalizedVelocity } from '../utils/capacityUtils';
+import { useAllMembers, useEngineerMembers } from '../stores/teamStore';
+import { DEFAULT_SPRINT_CAPACITY, DEFAULT_TIME_OFF, computeTeamCapacityPercent, computeNormalizedVelocity, computeExpectedPoints } from '../utils/capacityUtils';
 
 export interface TeamVelocityDataPoint {
   sprintId: string;
@@ -16,6 +16,7 @@ export interface TeamVelocityDataPoint {
   itCount: number;
   capacityPercent: number;
   normalizedTotal: number | null;
+  expectedTotal: number | null;
 }
 
 export interface TeamTrendData {
@@ -36,6 +37,8 @@ export function useTeamTrends(sprintCount = 6): TeamTrendData {
   const history = useHistoryStore((state) => state.history);
   const selectedSprintId = useSprintStore((state) => state.selectedSprintId);
   const sprintNotes = useNotesStore((state) => state.sprintNotes);
+  const allMembers = useAllMembers();
+  const engineerMembers = useEngineerMembers();
 
   return useMemo(() => {
     // Find the selected sprint in history
@@ -48,6 +51,14 @@ export function useTeamTrends(sprintCount = 6): TeamTrendData {
       .sort((a, b) => getSprintNum(a.name) - getSprintNum(b.name))
       .slice(-sprintCount);
 
+    // Baseline avg of total points across the window — used to size "expected" per sprint.
+    const validTotals = relevantSprints
+      .map((s) => s.totalPoints ?? 0)
+      .filter((n) => n > 0);
+    const avgTotal = validTotals.length > 0
+      ? validTotals.reduce((a, b) => a + b, 0) / validTotals.length
+      : 0;
+
     const velocityData: TeamVelocityDataPoint[] = relevantSprints.map((sprint) => {
       // Aggregate metrics across all team members (for individual breakdowns)
       let devPts = 0;
@@ -56,7 +67,8 @@ export function useTeamTrends(sprintCount = 6): TeamTrendData {
       let reviewCount = 0;
       let itCount = 0;
 
-      for (const member of TEAM_MEMBERS) {
+      // Aggregate across ALL members (incl. former) so historical totals stay correct.
+      for (const member of allMembers) {
         const metrics = sprint.engineers[member.id];
         if (metrics) {
           devPts += metrics.devPts;
@@ -74,11 +86,15 @@ export function useTeamTrends(sprintCount = 6): TeamTrendData {
       // Capacity data from notesStore
       const sNotes = sprintNotes[sprint.id];
       const sprintCapacity = sNotes?.capacity ?? DEFAULT_SPRINT_CAPACITY;
-      const engineerTimeOffs = TEAM_MEMBERS.map((m) =>
+      // Capacity uses ENGINEER members only (admins excluded from the denominator).
+      // Past sprints may show slightly inaccurate capacity % if the roster changed,
+      // but current-sprint capacity is correct.
+      const engineerTimeOffs = engineerMembers.map((m) =>
         sNotes?.timeOff?.[m.id] ?? { ...DEFAULT_TIME_OFF, workingDays: sprintCapacity.effectiveSprintDays }
       );
       const capacityPercent = computeTeamCapacityPercent(engineerTimeOffs, sprintCapacity.defaultWorkingDays);
       const normalizedTotal = computeNormalizedVelocity(total, capacityPercent);
+      const expectedTotal = computeExpectedPoints(avgTotal, capacityPercent);
 
       return {
         sprintId: sprint.id,
@@ -91,6 +107,7 @@ export function useTeamTrends(sprintCount = 6): TeamTrendData {
         itCount,
         capacityPercent,
         normalizedTotal: normalizedTotal !== null ? Math.round(normalizedTotal) : null,
+        expectedTotal,
       };
     });
 
@@ -105,7 +122,7 @@ export function useTeamTrends(sprintCount = 6): TeamTrendData {
         previous,
       },
     };
-  }, [sprintCount, history.sprints, selectedSprintId, sprintNotes]);
+  }, [sprintCount, history.sprints, selectedSprintId, sprintNotes, allMembers, engineerMembers]);
 }
 
 // Helper to calculate delta between two team metrics
