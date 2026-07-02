@@ -19,7 +19,8 @@ export interface LabelConfig {
 export const LABEL_CONFIG: Record<string, LabelConfig> = {
   // Platform labels
   'Blizzard': { category: 'platform' },
-  'CEMQ': { category: 'platform' },
+  'CEMQ': { category: 'platform', displayName: 'CEM Query' },
+  'CEMQuery': { category: 'platform', displayName: 'CEM Query' },  // De-duped with CEMQ
   'Dashboard': { category: 'platform' },
   'Dashboard-V2': { category: 'platform', displayName: 'Dashboard' },  // De-duped with Dashboard
   'ITBacklog': { category: 'platform', displayName: 'IT Backlog' },
