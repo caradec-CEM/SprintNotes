@@ -69,7 +69,7 @@
       "name": "Neelkanth Patel",
       "accountId": "712020:150d54e9-9dfa-4487-adeb-afb26b86b46f",
       "active": true,
-      "role": "admin",
+      "role": "engineer",
       "avatarUrl": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/712020:150d54e9-9dfa-4487-adeb-afb26b86b46f/aa3e5f3b-6a0e-49a9-bc89-694f5189e2b3/48"
     },
     {
@@ -77,7 +77,7 @@
       "name": "Josephine Flynn",
       "accountId": "712020:0ec3629d-9e70-4f0d-9a46-9f030f9e1f2b",
       "active": true,
-      "role": "admin",
+      "role": "engineer",
       "avatarUrl": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/712020:0ec3629d-9e70-4f0d-9a46-9f030f9e1f2b/dbf2ec99-33a9-4747-80fd-340ac920d7ef/48"
     }
   ]

@@ -9,6 +9,9 @@ export interface EngineerData {
   reviewTickets: Ticket[];
   itTickets: Ticket[];
   allTickets: Ticket[];
+  // Items this engineer worked on that carried out to a later sprint (unfinished
+  // here). Kept separate from completed metrics/allTickets.
+  carriedOverTickets: Ticket[];
 
   // Metrics
   metrics: EngineerMetrics;
@@ -20,6 +23,7 @@ export interface EngineerData {
 export function useEngineerData(engineerId: string): EngineerData {
   const currentSprint = useSprintStore((state) => state.currentSprint);
   const selectedSprintId = useSprintStore((state) => state.selectedSprintId);
+  const carriedOver = useSprintStore((state) => state.carriedOverTickets);
   const sprintNotes = useNotesStore((state) => state.sprintNotes);
 
   return useMemo(() => {
@@ -38,6 +42,14 @@ export function useEngineerData(engineerId: string): EngineerData {
 
     // All tickets this engineer touched
     const allTickets = tickets.filter(
+      (t) =>
+        t.developers.includes(engineerId) ||
+        t.reviewers.includes(engineerId) ||
+        t.assignee === engineerId
+    );
+
+    // Carried-over items this engineer worked on (kept out of completed metrics)
+    const carriedOverTickets = carriedOver.filter(
       (t) =>
         t.developers.includes(engineerId) ||
         t.reviewers.includes(engineerId) ||
@@ -95,8 +107,9 @@ export function useEngineerData(engineerId: string): EngineerData {
       reviewTickets,
       itTickets,
       allTickets,
+      carriedOverTickets,
       metrics,
       notes,
     };
-  }, [currentSprint, selectedSprintId, engineerId, sprintNotes]);
+  }, [currentSprint, selectedSprintId, engineerId, sprintNotes, carriedOver]);
 }

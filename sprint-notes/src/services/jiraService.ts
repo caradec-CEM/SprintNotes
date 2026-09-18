@@ -379,6 +379,208 @@ export async function fetchSprintIssues(sprintId: string, sprintState: string = 
   });
 }
 
+// Fetch CP tickets that were in this sprint but carried OUT to a later sprint
+// (unfinished here). These are excluded from fetchSprintIssues' completed set, so
+// an engineer's in-sprint effort on them would otherwise be invisible when the
+// sprint is reviewed after close. Returned tickets are flagged `carriedForward`.
+export async function fetchCarriedOverIssues(sprintId: string): Promise<Ticket[]> {
+  const fields = JIRA_CONFIG.issueFields;
+  const excludeStatuses = 'status NOT IN ("Will Not Implement", "IT - Canceled")';
+
+  // All CP tickets that were ever assigned to this sprint (completed or not).
+  const jql = `project = CP AND sprint = ${sprintId} AND ${excludeStatuses}`;
+  const params = new URLSearchParams({
+    jql,
+    fields: fields.join(','),
+    expand: 'changelog',
+    maxResults: '200',
+  });
+  const endpoint = `${JIRA_ENDPOINTS.search}?${params.toString()}`;
+  const data = await jiraFetch<{ issues: JiraIssueRaw[]; total: number }>(endpoint);
+
+  const currentId = parseInt(sprintId);
+
+  // Keep only tickets whose latest sprint is AFTER this one — i.e. they left this
+  // sprint unfinished and continued elsewhere. (maxSprintId <= currentId means the
+  // ticket finished here and is already in the completed set.)
+  return data.issues
+    .filter((raw) => {
+      const sprintField = raw.fields.customfield_10020;
+      if (!Array.isArray(sprintField) || sprintField.length === 0) return false;
+      const maxSprintId = Math.max(...sprintField.map((s) => s.id));
+      return maxSprintId > currentId;
+    })
+    .map((raw) => ({ ...transformIssue(raw, sprintId), carriedForward: true }));
+}
+
+// ── Burn-up series ──────────────────────────────────────────────────────
+// Reconstructs, per calendar day of the sprint, the dynamic scope (committed
+// points, stepping as items are added/removed/re-pointed) and cumulative
+// completed points (day a ticket last transitioned into its final Done status).
+
+type RawHistory = { created: string; items: Array<{ field: string; fromString: string | null; toString: string | null }> };
+
+// All "Sprint <n>" numbers mentioned in a changelog value string (names or ids).
+function sprintNumsIn(value: string | null): number[] {
+  if (!value) return [];
+  const nums: number[] = [];
+  const re = /Sprint\s+(\d+)/gi;
+  let m;
+  while ((m = re.exec(value)) !== null) nums.push(parseInt(m[1], 10));
+  return nums;
+}
+
+function buildBurnUp(raw: JiraIssueRaw[], sprintNum: number, startDate: string, endDate: string): import('../types').BurnUpPoint[] {
+  // Status names that belong to the Done category (derived from the result set,
+  // since the changelog only records status names, not categories). e.g.
+  // "Done", "Deployed to Staging", "Live".
+  const doneNames = new Set<string>();
+  for (const issue of raw) {
+    if (issue.fields.status?.statusCategory?.name === 'Done' && issue.fields.status.name) {
+      doneNames.add(issue.fields.status.name);
+    }
+  }
+
+  // Scope-change events, bucketed by the day they happened (within the window).
+  const startD0 = new Date(startDate);
+  const endD0 = new Date(endDate);
+  // Exclude the start day: everything committed at sprint start is initial scope,
+  // not a mid-sprint change. Markers should only flag scope changes AFTER that.
+  const startDayEndMs = new Date(startD0.getFullYear(), startD0.getMonth(), startD0.getDate(), 23, 59, 59, 999).getTime();
+  const endMs = new Date(endD0.getFullYear(), endD0.getMonth(), endD0.getDate(), 23, 59, 59, 999).getTime();
+  const dayKey = (ms: number) => {
+    const d = new Date(ms);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+  const eventsByDay = new Map<string, import('../types').ScopeChange[]>();
+  const record = (ms: number, ch: import('../types').ScopeChange) => {
+    if (ms <= startDayEndMs || ms > endMs) return; // ignore initial commitment + post-end noise
+    const k = dayKey(ms);
+    if (!eventsByDay.has(k)) eventsByDay.set(k, []);
+    eventsByDay.get(k)!.push(ch);
+  };
+
+  // Per-ticket reconstruction
+  const tickets = raw.map((issue) => {
+    const histories: RawHistory[] = (issue.changelog?.histories ?? [])
+      .slice()
+      .sort((a, b) => new Date(a.created).getTime() - new Date(b.created).getTime()) as unknown as RawHistory[];
+
+    // Story Points timeline
+    const spChanges = histories
+      .flatMap((h) => h.items.filter((i) => i.field === 'Story Points').map((i) => ({ t: h.created, to: parseFloat(i.toString ?? '') , from: parseFloat(i.fromString ?? '') })));
+    const currentPoints = issue.fields.customfield_10031 ?? 0;
+    const pointsAt = (dayEnd: number): number => {
+      if (spChanges.length === 0) return currentPoints;
+      let val = isNaN(spChanges[0].from) ? 0 : spChanges[0].from;
+      for (const c of spChanges) {
+        if (new Date(c.t).getTime() <= dayEnd) val = isNaN(c.to) ? val : c.to;
+        else break;
+      }
+      return val;
+    };
+
+    // Sprint membership timeline for THIS sprint (by sprint number)
+    const sprintChanges = histories
+      .filter((h) => h.items.some((i) => i.field === 'Sprint'))
+      .map((h) => {
+        const item = h.items.find((i) => i.field === 'Sprint')!;
+        return { t: h.created, after: sprintNumsIn(item.toString).includes(sprintNum), before: sprintNumsIn(item.fromString).includes(sprintNum) };
+      });
+    const memberAt = (dayEnd: number): boolean => {
+      if (sprintChanges.length === 0) return true; // assume member for the whole window
+      let last: { t: string; after: boolean; before: boolean } | null = null;
+      for (const c of sprintChanges) {
+        if (new Date(c.t).getTime() <= dayEnd) last = c; else break;
+      }
+      return last ? last.after : sprintChanges[0].before;
+    };
+
+    // Completion (Jira-like): the FIRST time the ticket entered any Done-category
+    // status. Only meaningful if it's currently Done-category.
+    let completionTime: number | null = null;
+    if (issue.fields.status?.statusCategory?.name === 'Done') {
+      for (const h of histories) {
+        if (h.items.some((i) => i.field === 'status' && i.toString && doneNames.has(i.toString))) {
+          completionTime = new Date(h.created).getTime();
+          break; // first entry into a Done status
+        }
+      }
+      if (completionTime === null && issue.fields.resolutiondate) {
+        completionTime = new Date(issue.fields.resolutiondate).getTime();
+      }
+    }
+
+    // Emit scope-change events (added / removed / re-pointed) for the markers.
+    for (const c of sprintChanges) {
+      const t = new Date(c.t).getTime();
+      if (!c.before && c.after) record(t, { key: issue.key, kind: 'added', delta: pointsAt(t) });
+      else if (c.before && !c.after) record(t, { key: issue.key, kind: 'removed', delta: -pointsAt(t) });
+    }
+    for (const c of spChanges) {
+      if (isNaN(c.from) || isNaN(c.to) || c.from === c.to) continue;
+      const t = new Date(c.t).getTime();
+      if (memberAt(t)) record(t, { key: issue.key, kind: 'repointed', delta: c.to - c.from, from: c.from, to: c.to });
+    }
+
+    return { pointsAt, memberAt, completionTime };
+  });
+
+  // Day-by-day
+  const points: import('../types').BurnUpPoint[] = [];
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const now = Date.now();
+  const cursor = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const last = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+
+  while (cursor <= last) {
+    const dayEnd = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate(), 23, 59, 59, 999).getTime();
+    let scope = 0;
+    let completed = 0;
+    for (const t of tickets) {
+      if (t.memberAt(dayEnd)) scope += t.pointsAt(dayEnd);
+      if (t.completionTime !== null && t.completionTime <= dayEnd && t.memberAt(t.completionTime)) {
+        completed += t.pointsAt(t.completionTime);
+      }
+    }
+    const iso = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}-${String(cursor.getDate()).padStart(2, '0')}`;
+    points.push({
+      date: iso,
+      label: cursor.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      scope: Math.round(scope * 10) / 10,
+      // Don't draw completed into the future for active sprints
+      completed: dayEnd <= now + 86400000 ? Math.round(completed * 10) / 10 : NaN,
+      isToday: now >= new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate()).getTime() && now <= dayEnd,
+      scopeChanges: eventsByDay.get(iso),
+    });
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return points;
+}
+
+export async function fetchBurnUpSeries(
+  sprintId: string,
+  sprintName: string,
+  startDate: string,
+  endDate: string
+): Promise<import('../types').BurnUpPoint[]> {
+  if (!startDate || !endDate) return [];
+  const sprintNum = (() => { const m = /Sprint\s+(\d+)/i.exec(sprintName); return m ? parseInt(m[1], 10) : NaN; })();
+  if (isNaN(sprintNum)) return [];
+
+  const excludeStatuses = 'status NOT IN ("Will Not Implement", "IT - Canceled")';
+  const jql = `project = CP AND sprint = ${sprintId} AND ${excludeStatuses}`;
+  const params = new URLSearchParams({
+    jql,
+    fields: JIRA_CONFIG.issueFields.join(','),
+    expand: 'changelog',
+    maxResults: '200',
+  });
+  const data = await jiraFetch<{ issues: JiraIssueRaw[] }>(`${JIRA_ENDPOINTS.search}?${params.toString()}`);
+  return buildBurnUp(data.issues, sprintNum, startDate, endDate);
+}
+
 // Fetch a single sprint by ID
 export async function fetchSprintById(sprintId: string): Promise<Sprint | null> {
   try {

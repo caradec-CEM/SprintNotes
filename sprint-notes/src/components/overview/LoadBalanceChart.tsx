@@ -40,9 +40,12 @@ export function LoadBalanceChart() {
     };
   }).sort((a, b) => b.total - a.total); // Sort by total descending
 
+  // Scale height with the number of people so name labels aren't squeezed/hidden.
+  const chartHeight = Math.max(300, data.length * 44 + 20);
+
   return (
     <div className="load-balance-chart">
-      <ResponsiveContainer width="100%" height={300}>
+      <ResponsiveContainer width="100%" height={chartHeight}>
         <BarChart
           data={data}
           layout="vertical"

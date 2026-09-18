@@ -4,6 +4,7 @@ import { LoadBalanceChart } from './LoadBalanceChart';
 import { SummaryTable } from './SummaryTable';
 import { ReviewBottlenecks } from './ReviewBottlenecks';
 import { TeamTrends } from './TeamTrends';
+import { BurnUpChart } from './BurnUpChart';
 import { SprintCapacityEditor } from './SprintCapacityEditor';
 import { DemoDeckText } from './DemoDeckText';
 import { LoadingSpinner } from '../common';
@@ -85,6 +86,11 @@ export function TeamOverview() {
         {/* Team Trends */}
         <Section title="Team Trends">
           <TeamTrends />
+        </Section>
+
+        {/* Burn-up */}
+        <Section title="Burn-up">
+          <BurnUpChart />
         </Section>
 
         {/* Review Bottlenecks */}

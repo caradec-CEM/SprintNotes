@@ -2,7 +2,7 @@ import { useEffect, useCallback, useRef } from 'react';
 import { useSprintStore } from '../stores/sprintStore';
 import { useHistoryStore, createSprintSummary } from '../stores/historyStore';
 import { useTeamStore } from '../stores/teamStore';
-import { fetchSprints, fetchSprintData, fetchSprintIssues, fetchActiveSprintInFlightTickets, getAvatarMap } from '../services/jiraService';
+import { fetchSprints, fetchSprintData, fetchSprintIssues, fetchActiveSprintInFlightTickets, fetchCarriedOverIssues, fetchBurnUpSeries, getAvatarMap } from '../services/jiraService';
 import type { Sprint } from '../types';
 
 // Hook to load available sprints
@@ -102,6 +102,8 @@ export function useSprintData() {
     setTicketsError,
     setInFlightTickets,
     setInFlightLoading,
+    setCarriedOverTickets,
+    setBurnUpData,
   } = useSprintStore();
 
   const { addSprintSummary } = useHistoryStore();
@@ -110,6 +112,8 @@ export function useSprintData() {
     setTicketsLoading(true);
     setTicketsError(null);
     setInFlightTickets([]);
+    setCarriedOverTickets([]);
+    setBurnUpData([]);
 
     try {
       const data = await fetchSprintData(sprintId);
@@ -135,6 +139,19 @@ export function useSprintData() {
         // Auto-fill any missing member avatars from the JIRA user data in these tickets.
         useTeamStore.getState().enrichAvatars(getAvatarMap());
 
+        // Burn-up series (needs sprint start/end dates from changelog reconstruction)
+        try {
+          const burnUp = await fetchBurnUpSeries(
+            data.sprint.id,
+            data.sprint.name,
+            data.sprint.startDate ?? '',
+            data.sprint.endDate ?? new Date().toISOString()
+          );
+          setBurnUpData(burnUp);
+        } catch (e) {
+          console.warn('Failed to load burn-up series:', e);
+        }
+
         // Fetch in-flight tickets for active sprints
         if (data.sprint.state === 'active') {
           setInFlightLoading(true);
@@ -147,6 +164,16 @@ export function useSprintData() {
           } finally {
             setInFlightLoading(false);
           }
+        } else {
+          // For closed sprints, surface items that were worked on here but carried
+          // out to a later sprint (excluded from the completed set).
+          try {
+            const carried = await fetchCarriedOverIssues(sprintId);
+            setCarriedOverTickets(carried);
+            useTeamStore.getState().enrichAvatars(getAvatarMap());
+          } catch (e) {
+            console.warn('Failed to load carried-over tickets:', e);
+          }
         }
       }
     } catch (error) {
@@ -156,7 +183,7 @@ export function useSprintData() {
     } finally {
       setTicketsLoading(false);
     }
-  }, [setCurrentSprint, setTicketsLoading, setTicketsError, addSprintSummary, setInFlightTickets, setInFlightLoading]);
+  }, [setCurrentSprint, setTicketsLoading, setTicketsError, addSprintSummary, setInFlightTickets, setInFlightLoading, setCarriedOverTickets, setBurnUpData]);
 
   useEffect(() => {
     if (selectedSprintId) {

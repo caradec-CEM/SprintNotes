@@ -19,7 +19,7 @@ interface EngineerPanelProps {
 
 export function EngineerPanel({ engineerId }: EngineerPanelProps) {
   const member = findMemberById(engineerId);
-  const { allTickets, metrics, notes } = useEngineerData(engineerId);
+  const { allTickets, carriedOverTickets, metrics, notes } = useEngineerData(engineerId);
   const currentSprint = useSprintStore((state) => state.currentSprint);
   const sprintNotes = useNotesStore((state) => state.sprintNotes);
 
@@ -73,6 +73,30 @@ export function EngineerPanel({ engineerId }: EngineerPanelProps) {
             showDevReviewer={true}
           />
         </Section>
+
+        {/* Carried over — worked on this sprint but not finished (moved to a later sprint) */}
+        {carriedOverTickets.length > 0 && (
+          <Section
+            title="Carried Over — Unfinished"
+            defaultCollapsed={false}
+            flush
+            actions={
+              <span className="engineer-panel__ticket-count engineer-panel__ticket-count--carryover">
+                {carriedOverTickets.length}
+              </span>
+            }
+          >
+            <p className="engineer-panel__carryover-note">
+              Worked on during this sprint but not completed — carried forward to a later sprint.
+              Not counted in the metrics above.
+            </p>
+            <TicketTable
+              tickets={carriedOverTickets}
+              engineerId={engineerId}
+              showDevReviewer={true}
+            />
+          </Section>
+        )}
 
         {/* Individual Trends */}
         <Section title="Trends" defaultCollapsed={false}>

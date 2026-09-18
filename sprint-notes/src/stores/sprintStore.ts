@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Sprint, SprintData, Ticket } from '../types';
+import type { Sprint, SprintData, Ticket, BurnUpPoint } from '../types';
 
 interface SprintState {
   // Available sprints from JIRA
@@ -19,6 +19,12 @@ interface SprintState {
   inFlightTickets: Ticket[];
   inFlightLoading: boolean;
 
+  // Tickets that were in this sprint but carried out to a later sprint (unfinished here)
+  carriedOverTickets: Ticket[];
+
+  // Burn-up series (per-day scope + completed) for the selected sprint
+  burnUpData: BurnUpPoint[];
+
   // Actions
   setSprints: (sprints: Sprint[]) => void;
   setSprintsLoading: (loading: boolean) => void;
@@ -32,6 +38,9 @@ interface SprintState {
 
   setInFlightTickets: (tickets: Ticket[]) => void;
   setInFlightLoading: (loading: boolean) => void;
+
+  setCarriedOverTickets: (tickets: Ticket[]) => void;
+  setBurnUpData: (points: BurnUpPoint[]) => void;
 }
 
 export const useSprintStore = create<SprintState>((set) => ({
@@ -49,6 +58,9 @@ export const useSprintStore = create<SprintState>((set) => ({
   inFlightTickets: [],
   inFlightLoading: false,
 
+  carriedOverTickets: [],
+  burnUpData: [],
+
   // Actions
   setSprints: (sprints) => set({ sprints }),
   setSprintsLoading: (sprintsLoading) => set({ sprintsLoading }),
@@ -62,6 +74,9 @@ export const useSprintStore = create<SprintState>((set) => ({
 
   setInFlightTickets: (inFlightTickets) => set({ inFlightTickets }),
   setInFlightLoading: (inFlightLoading) => set({ inFlightLoading }),
+
+  setCarriedOverTickets: (carriedOverTickets) => set({ carriedOverTickets }),
+  setBurnUpData: (burnUpData) => set({ burnUpData }),
 }));
 
 // Selector hooks for computed values

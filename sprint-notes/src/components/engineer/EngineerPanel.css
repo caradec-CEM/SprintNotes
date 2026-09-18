@@ -83,6 +83,19 @@
   font-weight: 600;
 }
 
+.engineer-panel__ticket-count--carryover {
+  background: var(--color-tint-yellow-bg);
+  color: var(--color-tint-yellow-text);
+}
+
+.engineer-panel__carryover-note {
+  margin: 0 0 var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-subtle);
+  font-style: italic;
+}
+
 @media print {
   .engineer-panel {
     padding: var(--space-md);

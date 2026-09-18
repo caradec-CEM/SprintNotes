@@ -43,7 +43,8 @@ export interface Ticket {
   inReviewDuration?: StatusDuration;
   pointChange?: PointChange;
   changelog?: ChangelogEntry[];
-  isCarryOver?: boolean;
+  isCarryOver?: boolean;    // Came INTO this sprint from an earlier one
+  carriedForward?: boolean; // Was in this sprint but moved OUT to a later sprint (unfinished here)
   // Participants from JIRA whose accountId isn't in the team roster — surfaced
   // by the Team Settings "Detect from current sprint" feature so new members
   // can be added without manual accountId lookup.
@@ -221,6 +222,25 @@ export interface JiraSprintRaw {
   startDate?: string;
   endDate?: string;
   completeDate?: string;
+}
+
+// A mid-sprint change to the committed scope, attributed to a day
+export interface ScopeChange {
+  key: string;                                  // ticket key
+  kind: 'added' | 'removed' | 'repointed';
+  delta: number;                                // signed points change to scope
+  from?: number;                                // repoint: old points
+  to?: number;                                  // repoint: new points
+}
+
+// Burn-up chart: one point per calendar day of the sprint
+export interface BurnUpPoint {
+  date: string;      // YYYY-MM-DD
+  label: string;     // e.g. "Jun 3"
+  scope: number;     // total committed points in the sprint as of this day (dynamic)
+  completed: number; // cumulative points completed by this day
+  isToday?: boolean; // marks the current day (active sprints)
+  scopeChanges?: ScopeChange[]; // tickets added/removed/re-pointed on this day
 }
 
 // Trend data for charts
