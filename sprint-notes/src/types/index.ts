@@ -208,7 +208,7 @@ export interface JiraIssueRaw {
     labels: string[] | null;
     customfield_10031: number | null;  // Story Points
     customfield_10124: JiraUserRaw[] | null;  // Developer (multiple)
-    customfield_10058: JiraUserRaw | JiraUserRaw[] | null;  // Reviewer (can be single or multiple)
+    customfield_12696: JiraUserRaw | JiraUserRaw[] | null;  // Reviewer (multi-select; old single field was customfield_10058)
     customfield_10020: Array<{ id: number; name: string }> | null;  // Sprint
     resolutiondate: string | null;
   };

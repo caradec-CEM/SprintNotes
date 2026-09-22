@@ -125,7 +125,7 @@ export function getAvatarMap(): Record<string, string> {
 // Transform raw JIRA issue to app format
 function transformIssue(raw: JiraIssueRaw, sprintId: string): Ticket {
   const developerField = raw.fields.customfield_10124;
-  const reviewerField = raw.fields.customfield_10058;
+  const reviewerField = raw.fields.customfield_12696;
   const assigneeField = raw.fields.assignee;
 
   // Track accountIds of people on this ticket who aren't in the team roster.

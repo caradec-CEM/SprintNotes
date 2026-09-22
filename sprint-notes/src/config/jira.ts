@@ -6,7 +6,7 @@ export const JIRA_CONFIG = {
   customFields: {
     storyPoints: 'customfield_10031',
     developer: 'customfield_10124',    // User picker (multiple)
-    reviewer: 'customfield_10058',      // User picker (single)
+    reviewer: 'customfield_12696',      // User picker (multi-select). Old single-user field was customfield_10058 ("Reviewer (old)")
     sprint: 'customfield_10020',
   },
 
@@ -21,7 +21,7 @@ export const JIRA_CONFIG = {
     'resolutiondate',
     'customfield_10031',  // Story Points
     'customfield_10124',  // Developer
-    'customfield_10058',  // Reviewer
+    'customfield_12696',  // Reviewer (multi-select)
     'customfield_10020',  // Sprint
   ],
 
